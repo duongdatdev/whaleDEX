@@ -1,58 +1,58 @@
 # WhaleDEX
 
-Foundation monorepo cho dự án DEX, gồm frontend và backend chạy độc lập. Chưa triển khai nghiệp vụ giao dịch hoặc tích hợp blockchain.
+A foundation monorepo for a DEX project, with independently runnable frontend and backend applications. Trading logic and blockchain integrations are not implemented yet.
 
-## Công nghệ
+## Technology stack
 
-| Thành phần | Công nghệ                     | Vai trò                                      |
-| ---------- | ----------------------------- | -------------------------------------------- |
-| Frontend   | Next.js 16, React 19          | App Router, giao diện và production build    |
-| Backend    | Fastify 5, Node.js 24 LTS     | HTTP API độc lập, logging, graceful shutdown |
-| Workspace  | pnpm 11, Turborepo 2          | Dependency nội bộ, task graph và build cache |
-| Ngôn ngữ   | TypeScript strict, ESM        | Chia sẻ type, biên dịch API thành JavaScript |
-| Chất lượng | ESLint, Prettier              | Lint và định dạng thống nhất                 |
-| Cấu hình   | Zod, dotenv cho API           | Kiểm tra biến môi trường trước khi khởi động |
-| Kiểm thử   | Vitest, React Testing Library | Component, environment và HTTP contract      |
+| Component     | Technology                    | Purpose                                              |
+| ------------- | ----------------------------- | ---------------------------------------------------- |
+| Frontend      | Next.js 16, React 19          | App Router, UI, and production builds                |
+| Backend       | Fastify 5, Node.js 24 LTS     | Independent HTTP API, logging, and graceful shutdown |
+| Workspace     | pnpm 11, Turborepo 2          | Internal dependencies, task graph, and build caching |
+| Language      | Strict TypeScript, ESM        | Shared types and API compilation to JavaScript       |
+| Code quality  | ESLint, Prettier              | Consistent linting and formatting                    |
+| Configuration | Zod, dotenv for the API       | Environment validation before startup                |
+| Testing       | Vitest, React Testing Library | Component, environment, and HTTP contract tests      |
 
-TypeScript được pin ở 6.0.3 để nằm trong dải hỗ trợ của typescript-eslint. ESLint 10 dùng preset chung cùng plugin Next.js và React Hooks trực tiếp; tránh kéo plugin React cũ chỉ hỗ trợ ESLint 9 qua `eslint-config-next`.
+TypeScript is pinned to 6.0.3 to stay within the range supported by typescript-eslint. ESLint 10 uses shared presets with the Next.js and React Hooks plugins directly, avoiding the older React plugin limited to ESLint 9 that `eslint-config-next` pulls in.
 
-## Cấu trúc
+## Project structure
 
 ```text
 apps/
   web/                 # Next.js: http://localhost:3000
   api/                 # Fastify: http://localhost:3001/health
 packages/
-  shared/              # Schema/type portable, xuất dist ESM + declaration
-  config/              # Preset TypeScript, ESLint, Prettier
+  shared/              # Portable schemas/types, compiled ESM + declarations in dist
+  config/              # TypeScript, ESLint, and Prettier presets
 ```
 
-Ứng dụng có thể phụ thuộc package, nhưng không import mã của nhau. `shared` không import API, Node-only modules hoặc secret. `config` chỉ phục vụ tooling. Package nội bộ dùng `workspace:*` và không publish npm.
+Applications may depend on packages but must not import each other's code. `shared` must not import API code, Node-only modules, or secrets. `config` is for tooling only. Internal packages use `workspace:*` and are not published to npm.
 
-## Bắt đầu
+## Getting started
 
-Yêu cầu Node.js **24.x** và pnpm **11.19.0**. `.nvmrc`, `.node-version`, `engines` và `packageManager` ghi nhận các phiên bản này.
+Requires Node.js **24.x** and pnpm **11.19.0**. These versions are recorded in `.nvmrc`, `.node-version`, `engines`, and `packageManager`.
 
-Nếu chưa có pnpm:
+If pnpm is not installed:
 
 ```sh
 npm install --global pnpm@11.19.0
 ```
 
-Chạy tại root repository:
+From the repository root:
 
 ```sh
 pnpm install --frozen-lockfile
 ```
 
-Tạo cấu hình local bằng PowerShell:
+Create local environment files with PowerShell:
 
 ```powershell
 Copy-Item apps/web/.env.example apps/web/.env.local
 Copy-Item apps/api/.env.example apps/api/.env
 ```
 
-Hoặc bằng macOS/Linux:
+Or on macOS/Linux:
 
 ```sh
 cp apps/web/.env.example apps/web/.env.local
@@ -63,60 +63,60 @@ cp apps/api/.env.example apps/api/.env
 pnpm dev
 ```
 
-Web hiển thị **DEX App** tại http://localhost:3000. API trả `{"status":"ok"}` tại http://localhost:3001/health. Trang web hiện độc lập với API; nhãn “Frontend is ready” không phải kết quả kiểm tra API.
+The web app displays **DEX App** at http://localhost:3000. The API returns `{"status":"ok"}` at http://localhost:3001/health. The page currently runs independently of the API; the “Frontend is ready” label does not indicate API health.
 
-## Lệnh thường dùng
+## Common commands
 
-| Lệnh tại root       | Tác dụng                                        |
-| ------------------- | ----------------------------------------------- |
-| `pnpm dev`          | Chạy shared watcher, web và API                 |
-| `pnpm dev:web`      | Chạy web cùng dependency watcher                |
-| `pnpm dev:api`      | Chạy API cùng dependency watcher                |
-| `pnpm build`        | Build shared trước, sau đó web và API           |
-| `pnpm start:web`    | Chạy production web đã build                    |
-| `pnpm start:api`    | Chạy JavaScript API đã build                    |
-| `pnpm lint`         | Kiểm tra ESLint các workspace                   |
-| `pnpm typecheck`    | Sinh Next.js route types và kiểm tra TypeScript |
-| `pnpm test`         | Chạy test một lần, không watch                  |
-| `pnpm format`       | Định dạng mã nguồn                              |
-| `pnpm format:check` | Kiểm tra định dạng mà không sửa file            |
+| Command from the root | Purpose                                           |
+| --------------------- | ------------------------------------------------- |
+| `pnpm dev`            | Run the shared watcher, web app, and API          |
+| `pnpm dev:web`        | Run the web app and its dependency watcher        |
+| `pnpm dev:api`        | Run the API and its dependency watcher            |
+| `pnpm build`          | Build shared first, then the web app and API      |
+| `pnpm start:web`      | Run the built web app in production mode          |
+| `pnpm start:api`      | Run the compiled JavaScript API                   |
+| `pnpm lint`           | Run ESLint across workspaces                      |
+| `pnpm typecheck`      | Generate Next.js route types and check TypeScript |
+| `pnpm test`           | Run tests once, without watch mode                |
+| `pnpm format`         | Format source files                               |
+| `pnpm format:check`   | Check formatting without modifying files          |
 
-Các lệnh dev qua root chuẩn bị shared trước khi chạy ứng dụng; không cần tự build shared. Sau đó TypeScript watch biên dịch shared và API watch theo dõi JavaScript đầu ra. Hãy dùng lệnh root cho lần khởi động đầu tiên của một checkout mới.
+Root development commands prepare shared before starting the applications, so no manual shared build is required. TypeScript then watches and compiles shared, while the API watcher monitors its JavaScript output. Use root commands when starting a fresh checkout for the first time.
 
 ## Environment
 
-| Ứng dụng | Biến                  | Mặc định                |
-| -------- | --------------------- | ----------------------- |
-| API      | `NODE_ENV`            | `development`           |
-| API      | `HOST`                | `127.0.0.1`             |
-| API      | `PORT`                | `3001`                  |
-| Web      | `NEXT_PUBLIC_API_URL` | `http://localhost:3001` |
+| Application | Variable              | Default                 |
+| ----------- | --------------------- | ----------------------- |
+| API         | `NODE_ENV`            | `development`           |
+| API         | `HOST`                | `127.0.0.1`             |
+| API         | `PORT`                | `3001`                  |
+| Web         | `NEXT_PUBLIC_API_URL` | `http://localhost:3001` |
 
-API đọc `apps/api/.env` qua dotenv; biến môi trường của process được ưu tiên. Next.js dùng cơ chế `.env*` tích hợp; ưu tiên đặt cấu hình local trong `apps/web/.env.local`. Cả hai dùng Zod để báo tên biến không hợp lệ mà không in giá trị cấu hình.
+The API loads `apps/api/.env` through dotenv; process environment variables take precedence. Next.js uses its built-in `.env*` loading, with `apps/web/.env.local` recommended for local configuration. Both applications use Zod to report invalid variable names without printing configuration values.
 
-`NEXT_PUBLIC_*` là dữ liệu công khai và được Next.js nhúng vào client bundle khi được sử dụng; cấu hình chúng trước build. Không đặt secret dưới prefix này. Hiện URL API chỉ được chuẩn bị và kiểm tra, chưa phát sinh request frontend → backend hoặc cần cấu hình CORS.
+`NEXT_PUBLIC_*` variables are public and are embedded in the client bundle by Next.js when used; configure them before building. Never put secrets under this prefix. The API URL is currently prepared and validated only; there are no frontend-to-backend requests or CORS configuration requirements yet.
 
-Env thật không được commit; chỉ `.env.example` được theo dõi. Turbo khai báo biến và file env ảnh hưởng build để tránh dùng cache sai cấu hình.
+Actual environment files are excluded from Git; only `.env.example` files are tracked. Turbo declares environment variables and files that affect builds to avoid reusing cached output for a different configuration.
 
-## Production build local
+## Running a production build locally
 
 ```sh
 pnpm build
 pnpm start:web
 ```
 
-Mở terminal khác và chạy API với môi trường production, ví dụ PowerShell:
+Open another terminal and run the API with the production environment, for example in PowerShell:
 
 ```powershell
 $env:NODE_ENV = 'production'
 pnpm start:api
 ```
 
-Trên macOS/Linux: `NODE_ENV=production pnpm start:api`.
+On macOS/Linux: `NODE_ENV=production pnpm start:api`.
 
-API chạy `dist/server.js` bằng Node.js, không cần tsx runtime. Đặt `HOST=0.0.0.0` khi môi trường triển khai cần lắng nghe trên mọi interface. Bản build local sử dụng workspace đã cài dependencies; đây chưa phải artifact container độc lập. Không chạy web dev và production đồng thời trên cổng 3000.
+The API runs `dist/server.js` with Node.js and does not require tsx at runtime. Set `HOST=0.0.0.0` when the deployment environment requires listening on all interfaces. The local build uses the workspace with dependencies installed; it is not a standalone container artifact. Do not run the web app in development and production mode simultaneously on port 3000.
 
-## Kiểm tra trước commit
+## Pre-commit checks
 
 ```sh
 pnpm format:check
@@ -126,8 +126,8 @@ pnpm test
 pnpm build
 ```
 
-Test API dùng Fastify injection, không mở cổng thật; test web kiểm tra heading; test shared kiểm tra health contract; test env bao gồm giá trị sai và mặc định.
+API tests use Fastify injection without opening a real port. Web tests verify the heading, shared tests validate the health contract, and environment tests cover invalid values and defaults.
 
-## Bước phát triển tiếp theo
+## Future development
 
-Foundation này chưa có smart contract, wallet connection, swap, liquidity pool, indexing, authentication, database hoặc blockchain SDK. Chưa thêm Docker, deployment và CI provider. Các thành phần đó sẽ được chọn khi có yêu cầu cụ thể.
+This foundation does not include smart contracts, wallet connections, swaps, liquidity pools, indexing, authentication, a database, or blockchain SDKs. Docker, deployment, and a CI provider have not been added. These components will be selected when concrete requirements are available.
