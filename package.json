@@ -1,0 +1,27 @@
+{
+  "name": "whaledex",
+  "private": true,
+  "type": "module",
+  "packageManager": "pnpm@11.19.0",
+  "engines": {
+    "node": ">=24 <25"
+  },
+  "scripts": {
+    "dev": "turbo run dev",
+    "dev:web": "turbo run dev --filter=@whaledex/web...",
+    "dev:api": "turbo run dev --filter=@whaledex/api...",
+    "build": "turbo run build",
+    "start:web": "pnpm --filter @whaledex/web start",
+    "start:api": "pnpm --filter @whaledex/api start",
+    "lint": "turbo run lint",
+    "typecheck": "turbo run typecheck",
+    "test": "turbo run test",
+    "format": "prettier --write .",
+    "format:check": "prettier --check ."
+  },
+  "devDependencies": {
+    "@whaledex/config": "workspace:*",
+    "prettier": "3.9.6",
+    "turbo": "2.10.12"
+  }
+}

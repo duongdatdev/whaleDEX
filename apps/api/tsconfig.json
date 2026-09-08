@@ -1,0 +1,5 @@
+{
+  "extends": "@whaledex/config/typescript/node",
+  "compilerOptions": { "noEmit": true, "types": ["node"] },
+  "include": ["src/**/*.ts"]
+}
