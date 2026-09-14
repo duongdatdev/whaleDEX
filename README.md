@@ -131,3 +131,13 @@ API tests use Fastify injection without opening a real port. Web tests verify th
 ## Future development
 
 This foundation does not include smart contracts, wallet connections, swaps, liquidity pools, indexing, authentication, a database, or blockchain SDKs. Docker, deployment, and a CI provider have not been added. These components will be selected when concrete requirements are available.
+
+## Product and requirements documentation
+
+- [Project development roadmap](docs/DOCS.md)
+- [Chapter 3 — AI in Requirement Analysis & Product Management](docs/chapter-3/README.md)
+- [WhaleDEX MVP product requirement document](docs/chapter-3/whaledex-mvp-prd.md)
+- [Practical Lab 3 — From evidence to a testable feature specification](docs/chapter-3/practical-lab.md)
+- [Requirements traceability matrix](docs/chapter-3/traceability-matrix.md)
+
+The Chapter 3 package is a requirements baseline, not proof that the described product features are implemented. Items derived from assumptions are marked and must be validated before blockchain integration begins.
