@@ -4,7 +4,7 @@
 
 Tài liệu này là chuẩn thiết kế mục tiêu cho developer và AI khi xây dựng WhaleDEX. Các màn hình, component và hành vi bên dưới **chưa được triển khai** tại thời điểm soạn tài liệu; code hiện tại là nền tảng Next.js, React và Fastify với một trang mẫu.
 
-Nguồn nghiệp vụ là [PRD WhaleDEX](docs/prd-whaledex.md): DEX spot không lưu ký trên **Sui Testnet**, sử dụng **DeepBookV3** và sổ lệnh. Trong ngữ cảnh này, pool là thị trường cho một cặp tài sản; cung cấp thanh khoản là đặt lệnh maker. Không đưa luồng EVM, cấp allowance ERC-20, AMM, LP token hoặc farming trong `docs/DOCS.md` vào giao diện MVP.
+Nguồn nghiệp vụ là [PRD WhaleDEX](docs/prd-whaledex.md), thứ tự triển khai nằm trong [lộ trình](docs/DOCS.md), và lựa chọn nền tảng được chốt tại [ADR-0001](docs/adr/0001-sui-deepbook.md). WhaleDEX là DEX spot không lưu ký trên **Sui Testnet**, sử dụng **DeepBookV3** và sổ lệnh. Trong ngữ cảnh này, pool là thị trường cho một cặp tài sản; cung cấp thanh khoản là đặt lệnh maker. MVP không có luồng EVM, allowance ERC-20, AMM, LP token hoặc farming.
 
 Thiết kế bắt đầu mới hoàn toàn. Màu, font và bố cục của trang mẫu không phải ràng buộc. Phạm vi gồm landing page và ứng dụng web responsive, chỉ dark mode, nội dung tiếng Việt. Tài liệu không thay đổi API, schema, dependency hay lựa chọn giao thức trong PRD.
 
@@ -146,8 +146,9 @@ Toàn trang giữ nền tối; hình ảnh không làm giảm tương phản n�
 Form một cột, tối đa 480 px, thứ tự: chọn chế độ, cặp token, số lượng trả, đảo chiều, lượng nhận dự kiến, chi tiết giá/phí, trượt giá, nút “Xem lại giao dịch”.
 
 - Chỉ hỗ trợ exact input và chiều base/quote của pool được hỗ trợ. Đảo chiều cần tạo preview mới; không tái sử dụng lượng nhận cũ làm báo giá mới.
-- Hiển thị số dư nguồn sử dụng. Nếu luồng đã chọn cần tài sản trong tài khoản giao dịch, nói rõ và dẫn qua bước nạp; không mặc định coi toàn bộ số dư ví là khả dụng để giao dịch.
-- Chi tiết gồm lượng nhận dự kiến, lượng nhận tối thiểu, giá khớp trung bình, tác động giá, phí giao dịch, gas ước tính và thời điểm báo giá. Không giấu lượng nhận tối thiểu sau tooltip.
+- Swap mặc định dùng coin trực tiếp trong ví và không yêu cầu `BalanceManager`. Chỉ chế độ Nâng cao với order mới dẫn người dùng qua bước tạo/tái sử dụng và nạp tài khoản giao dịch.
+- Hiển thị số dư ví có thể dùng sau khi chừa gas reserve phù hợp; không mặc định coi toàn bộ SUI trong ví là khả dụng để swap.
+- Chi tiết gồm lượng nhận dự kiến, lượng nhận tối thiểu lớn hơn 0, giá khớp trung bình, tác động giá, tài sản trả phí, phí giao dịch, gas ước tính và thời điểm báo giá. Không giấu lượng nhận tối thiểu hoặc tài sản trả phí sau tooltip.
 - Trượt giá mặc định **0,5%**, cảnh báo từ **1%** theo PRD. Ngưỡng tác động giá lớn lấy từ cấu hình nghiệp vụ, không tự đặt ngưỡng mới trong component.
 - Khi chưa kết nối, hành động chính là “Kết nối ví”. Sau khi kết nối và dữ liệu hợp lệ, dùng “Xem lại giao dịch”; hành động ký nằm ở màn hình review.
 - Trong lúc cập nhật báo giá, giữ nội dung nhập; khóa bước review cho đến khi có preview hợp lệ tương ứng với input hiện tại.
@@ -186,9 +187,9 @@ Các trạng thái số dư có thể phản ánh những góc nhìn liên quan 
 
 ### 5.6. Hướng dẫn Testnet
 
-Checklist gồm kết nối ví, đúng Sui Testnet, có SUI cho gas, có token giao dịch, có/tạo tài khoản giao dịch khi dùng luồng yêu cầu. Không bắt người chỉ xem thị trường hoàn thành checklist.
+Checklist gồm kết nối ví, đúng Sui Testnet, có SUI cho gas và có token giao dịch. Tạo/tái sử dụng tài khoản giao dịch chỉ xuất hiện trong hướng dẫn Nâng cao; không bắt người chỉ xem thị trường hoặc swap trực tiếp hoàn thành bước này.
 
-Liên kết faucet và hướng dẫn phải là nguồn chính thức được xác minh lúc triển khai. Khi faucet giới hạn yêu cầu, thông báo rõ và cho mở hướng dẫn; không hứa nhận token thành công. Không yêu cầu khóa bí mật, seed phrase, mật khẩu hay tài khoản email.
+SUI dùng cho gas lấy từ faucet chính thức. DEEP và quote asset ưu tiên token-request form được tài liệu DeepBook chỉ dẫn; swap SUI → DEEP trên `DEEP_SUI` chỉ là phương án phụ khi quote đủ minimum và book có thanh khoản. Liên kết phải được xác minh lúc triển khai. Khi faucet/form giới hạn yêu cầu, thông báo rõ và cho mở hướng dẫn; không hứa nhận token thành công, không tự gửi lại, và không yêu cầu khóa bí mật, seed phrase hay mật khẩu.
 
 ## 6. Component dùng chung
 
