@@ -29,6 +29,19 @@ packages/
 
 Applications may depend on packages but must not import each other's code. `shared` must not import API code, Node-only modules, or secrets. `config` is for tooling only. Internal packages use `workspace:*` and are not published to npm.
 
+## Project documentation
+
+| Document                                     | Purpose                                                                              |
+| -------------------------------------------- | ------------------------------------------------------------------------------------ |
+| [Product requirements](docs/prd-whaledex.md) | Approved Testnet MVP scope, user stories, requirements, and success metrics          |
+| [Development roadmap](docs/DOCS.md)          | Delivery order from the current foundation through MVP-A, MVP-B, and beta            |
+| [UI/UX design](DESIGN.md)                    | Target information architecture, interaction rules, visual system, and accessibility |
+| [ADR-0001](docs/adr/0001-sui-deepbook.md)    | Decision to use Sui Testnet and DeepBookV3 for the MVP                               |
+
+The PRD is the product source of truth, code and schemas describe implemented behavior, the roadmap controls delivery order, and ADRs record accepted architecture decisions. Planned behavior is not considered implemented until it exists in code and passes the relevant release checks.
+
+The supporting Chapter 3 requirements package contains the [AI-assisted requirements guide](docs/chapter-3/README.md), [MVP PRD](docs/chapter-3/whaledex-mvp-prd.md), [practical lab](docs/chapter-3/practical-lab.md), and [traceability matrix](docs/chapter-3/traceability-matrix.md). It is a requirements baseline, not proof that the described product features are implemented; assumption-derived items must be validated before blockchain integration begins.
+
 ## Getting started
 
 Requires Node.js **24.x** and pnpm **11.19.0**. These versions are recorded in `.nvmrc`, `.node-version`, `engines`, and `packageManager`.
@@ -130,14 +143,4 @@ API tests use Fastify injection without opening a real port. Web tests verify th
 
 ## Future development
 
-This foundation does not include smart contracts, wallet connections, swaps, liquidity pools, indexing, authentication, a database, or blockchain SDKs. Docker, deployment, and a CI provider have not been added. These components will be selected when concrete requirements are available.
-
-## Product and requirements documentation
-
-- [Project development roadmap](docs/DOCS.md)
-- [Chapter 3 — AI in Requirement Analysis & Product Management](docs/chapter-3/README.md)
-- [WhaleDEX MVP product requirement document](docs/chapter-3/whaledex-mvp-prd.md)
-- [Practical Lab 3 — From evidence to a testable feature specification](docs/chapter-3/practical-lab.md)
-- [Requirements traceability matrix](docs/chapter-3/traceability-matrix.md)
-
-The Chapter 3 package is a requirements baseline, not proof that the described product features are implemented. Items derived from assumptions are marked and must be validated before blockchain integration begins.
+This foundation does not yet include Sui/DeepBook SDKs, wallet connections, swaps, order-book data, `BalanceManager`, indexing, authentication, a database, Docker, deployment, or CI. The approved direction is a non-custodial Sui Testnet MVP using DeepBookV3: direct-wallet swap first, followed by advanced `BalanceManager` and limit-order flows. See the project documentation above for scope and sequencing.

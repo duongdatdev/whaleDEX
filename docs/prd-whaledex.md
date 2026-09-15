@@ -1,9 +1,12 @@
 # PRD: WhaleDEX
 
-**Trạng thái:** Draft 1.0  
-**Ngày:** 2026-09-09  
-**Phạm vi:** MVP chạy miễn phí trên testnet, kèm lộ trình đến DEX spot đầy đủ  
-**Nền tảng đề xuất:** Sui + DeepBookV3
+**Trạng thái:** Approved 1.1 cho Testnet MVP
+
+**Ngày:** 2026-09-15
+
+**Phạm vi:** MVP chạy miễn phí trên testnet, kèm lộ trình đến DEX spot đầy đủ
+
+**Nền tảng đã chọn:** Sui + DeepBookV3 ([ADR-0001](adr/0001-sui-deepbook.md))
 
 ## 1. Introduction/Overview
 
@@ -12,7 +15,7 @@ WhaleDEX là một sàn giao dịch phi tập trung, không lưu ký tài sản,
 - **Swap đơn giản:** người dùng nhập số lượng và giao dịch ngay theo giá thị trường.
 - **Trade nâng cao:** người dùng xem sổ lệnh, đặt lệnh giới hạn, quản lý lệnh mở và chủ động cung cấp thanh khoản bằng lệnh maker.
 
-Dự án hiện có monorepo TypeScript gồm Next.js 16, React 19, Fastify 5, package dùng chung, kiểm thử Vitest và chưa tích hợp blockchain. PRD này giữ nguyên nền tảng đó và đề xuất Sui + DeepBookV3 vì DeepBook là central limit order book (CLOB) gốc trên Sui, có SDK TypeScript, pool thị trường, market/limit order và `BalanceManager` sẵn có. MVP không viết smart contract riêng; ứng dụng ghép các giao dịch DeepBook bằng SDK và để ví người dùng ký.
+Dự án hiện có monorepo TypeScript gồm Next.js 16, React 19, Fastify 5, package dùng chung, kiểm thử Vitest và chưa tích hợp blockchain. PRD này giữ nguyên nền tảng đó và sử dụng Sui + DeepBookV3 vì DeepBook là central limit order book (CLOB) gốc trên Sui, có SDK TypeScript, pool thị trường, market/limit order và `BalanceManager` sẵn có. MVP không viết smart contract riêng; ứng dụng ghép các giao dịch DeepBook bằng SDK và để ví người dùng ký qua dApp Kit hiện hành.
 
 Trong tài liệu này, **pool** là một thị trường order-book cho một cặp tài sản trong DeepBook. Cung cấp thanh khoản nghĩa là đặt lệnh maker trên sổ lệnh, không phải gửi tài sản vào AMM để nhận LP token.
 
@@ -25,11 +28,11 @@ MVP được triển khai trên **Sui Testnet**, ưu tiên dịch vụ và endpo
 - Người dùng mục tiêu: mọi người dùng crypto.
 - Phạm vi tài liệu: MVP chi tiết và roadmap dài hạn.
 - Ràng buộc: ưu tiên làm miễn phí trước.
-- Blockchain: người dùng giao cho nhóm đề xuất; PRD chọn Sui và DeepBookV3.
+- Blockchain: Sui Testnet và DeepBookV3 đã được chấp thuận cho MVP trong ADR-0001.
 
 ## 2. Goals
 
-- Cho phép người dùng hoàn thành một giao dịch swap spot trên Sui Testnet từ lúc kết nối ví đến khi xem kết quả on-chain.
+- Cho phép người dùng hoàn thành một giao dịch swap spot trực tiếp từ coin trong ví trên Sui Testnet, không cần `BalanceManager`, từ lúc kết nối ví đến khi xem kết quả on-chain.
 - Cho phép trader đặt, theo dõi và hủy lệnh giới hạn trên ít nhất một pool DeepBook Testnet.
 - Cho phép người dùng tạo hoặc tái sử dụng một `BalanceManager`, nạp tài sản và rút tài sản về ví.
 - Hiển thị minh bạch giá, độ sâu sổ lệnh, phí ước tính, gas, số lượng nhận được và trạng thái giao dịch trước khi người dùng ký.
@@ -73,6 +76,7 @@ Muốn đặt lệnh maker khối lượng lớn, tránh tự khớp lệnh, ki�
 **Acceptance Criteria:**
 
 - [ ] Tích hợp SDK chính thức `@mysten/sui` và `@mysten/deepbook-v3`.
+- [ ] Kết nối ví React bằng `@mysten/dapp-kit-react`; không dùng package `@mysten/dapp-kit` legacy phụ thuộc JSON-RPC.
 - [ ] Tất cả truy vấn mới dùng gRPC, GraphQL hoặc DeepBook Indexer; không thêm phụ thuộc JSON-RPC mới.
 - [ ] API health trả riêng trạng thái ứng dụng và trạng thái upstream Sui/DeepBook, có timeout hữu hạn.
 - [ ] Có adapter để thay endpoint/provider mà không đổi component UI.
@@ -92,7 +96,7 @@ Muốn đặt lệnh maker khối lượng lớn, tránh tự khớp lệnh, ki�
 - [ ] Khi ví ở sai network, thao tác giao dịch bị khóa và có hướng dẫn chuyển sang Testnet.
 - [ ] Ứng dụng không yêu cầu hoặc ghi log seed phrase/private key.
 - [ ] Typecheck/lint passes.
-- [ ] Verify in browser using dev-browser skill.
+- [ ] Verify in browser using dev-browser skill or equivalent available browser tooling.
 
 ### US-004: Khám phá thị trường
 
@@ -106,7 +110,7 @@ Muốn đặt lệnh maker khối lượng lớn, tránh tự khớp lệnh, ki�
 - [ ] Trường hợp không có dữ liệu, dữ liệu trễ hoặc upstream lỗi có empty/error state khác nhau.
 - [ ] Chọn một market điều hướng đến URL ổn định chứa pool key.
 - [ ] Typecheck/lint passes.
-- [ ] Verify in browser using dev-browser skill.
+- [ ] Verify in browser using dev-browser skill or equivalent available browser tooling.
 
 ### US-005: Xem sổ lệnh và giao dịch gần nhất
 
@@ -121,7 +125,7 @@ Muốn đặt lệnh maker khối lượng lớn, tránh tự khớp lệnh, ki�
 - [ ] Snapshot có timestamp; UI đánh dấu stale nếu vượt ngưỡng cấu hình.
 - [ ] Cập nhật không làm mất lựa chọn hoặc nội dung đang nhập trong order form.
 - [ ] Typecheck/lint passes.
-- [ ] Verify in browser using dev-browser skill.
+- [ ] Verify in browser using dev-browser skill or equivalent available browser tooling.
 
 ### US-006: Tạo và tái sử dụng BalanceManager
 
@@ -135,7 +139,7 @@ Muốn đặt lệnh maker khối lượng lớn, tránh tự khớp lệnh, ki�
 - [ ] Khi indexer chưa đồng bộ, ứng dụng vẫn dùng object ID đã lưu và không tự động tạo manager thứ hai.
 - [ ] UI hiển thị rõ số dư trong ví, số dư khả dụng trong manager, số dư bị khóa và số dư đã settle.
 - [ ] Typecheck/lint passes.
-- [ ] Verify in browser using dev-browser skill.
+- [ ] Verify in browser using dev-browser skill or equivalent available browser tooling.
 
 ### US-007: Nạp tài sản vào BalanceManager
 
@@ -149,7 +153,7 @@ Muốn đặt lệnh maker khối lượng lớn, tránh tự khớp lệnh, ki�
 - [ ] Sau finality, số dư ví và manager được refresh và hiển thị transaction digest.
 - [ ] Lỗi thiếu số dư, faucet rate limit, từ chối ký và transaction failure có thông báo riêng.
 - [ ] Typecheck/lint passes.
-- [ ] Verify in browser using dev-browser skill.
+- [ ] Verify in browser using dev-browser skill or equivalent available browser tooling.
 
 ### US-008: Rút tài sản về ví
 
@@ -163,7 +167,7 @@ Muốn đặt lệnh maker khối lượng lớn, tránh tự khớp lệnh, ki�
 - [ ] Sau finality, số dư ví và manager được refresh.
 - [ ] Có link đến explorer bằng transaction digest.
 - [ ] Typecheck/lint passes.
-- [ ] Verify in browser using dev-browser skill.
+- [ ] Verify in browser using dev-browser skill or equivalent available browser tooling.
 
 ### US-009: Swap theo giá thị trường
 
@@ -172,13 +176,14 @@ Muốn đặt lệnh maker khối lượng lớn, tránh tự khớp lệnh, ki�
 **Acceptance Criteria:**
 
 - [ ] Tab Swap cho phép chọn chiều base/quote và nhập exact input amount.
-- [ ] Preview được tính từ order book hiện tại và hiển thị estimated output, average execution price, price impact, phí giao dịch và gas estimate.
+- [ ] Swap sử dụng coin trực tiếp trong ví và không yêu cầu tạo, tìm hoặc nạp tiền vào `BalanceManager`.
+- [ ] Preview được tính từ order book hiện tại và hiển thị estimated output, average execution price, price impact, fee asset, phí giao dịch và gas estimate.
 - [ ] Người dùng cấu hình max slippage; mặc định MVP là 0,5% và hiển thị cảnh báo từ 1% trở lên.
 - [ ] Nút Swap bị vô hiệu nếu không đủ số dư, không đủ gas, book rỗng, dữ liệu stale hoặc amount không hợp lệ.
-- [ ] Giao dịch có giới hạn đầu ra tối thiểu hoặc điều kiện tương đương để không thực thi ngoài slippage đã chấp nhận.
+- [ ] Giao dịch đặt `minOut` lớn hơn 0 từ preview cùng slippage đã chấp nhận; không cho review khi book rỗng hoặc output dưới minimum.
 - [ ] WhaleDEX không cam kết giá preview là giá khớp cuối cùng; UI hiển thị thời điểm preview.
 - [ ] Typecheck/lint passes.
-- [ ] Verify in browser using dev-browser skill.
+- [ ] Verify in browser using dev-browser skill or equivalent available browser tooling.
 
 ### US-010: Đặt limit order
 
@@ -193,7 +198,7 @@ Muốn đặt lệnh maker khối lượng lớn, tránh tự khớp lệnh, ki�
 - [ ] `POST_ONLY` giải thích rằng lệnh sẽ không được đặt nếu nó lập tức cross book.
 - [ ] Preview hiển thị tổng giá trị, tài sản sẽ bị khóa, fee asset và gas estimate.
 - [ ] Typecheck/lint passes.
-- [ ] Verify in browser using dev-browser skill.
+- [ ] Verify in browser using dev-browser skill or equivalent available browser tooling.
 
 ### US-011: Review và ký giao dịch
 
@@ -207,7 +212,7 @@ Muốn đặt lệnh maker khối lượng lớn, tránh tự khớp lệnh, ki�
 - [ ] Thay đổi account, network hoặc pool đóng review và yêu cầu tạo preview mới.
 - [ ] App chỉ gửi payload transaction tới ví; không nhận khóa ký.
 - [ ] Typecheck/lint passes.
-- [ ] Verify in browser using dev-browser skill.
+- [ ] Verify in browser using dev-browser skill or equivalent available browser tooling.
 
 ### US-012: Theo dõi vòng đời giao dịch
 
@@ -221,7 +226,7 @@ Muốn đặt lệnh maker khối lượng lớn, tránh tự khớp lệnh, ki�
 - [ ] Thất bại hiển thị lý do đã chuẩn hóa và hành động thử lại an toàn.
 - [ ] Reload trang không làm mất giao dịch đã submitted gần nhất trên cùng browser/network/account.
 - [ ] Typecheck/lint passes.
-- [ ] Verify in browser using dev-browser skill.
+- [ ] Verify in browser using dev-browser skill or equivalent available browser tooling.
 
 ### US-013: Quản lý lệnh mở và lịch sử khớp
 
@@ -236,7 +241,7 @@ Muốn đặt lệnh maker khối lượng lớn, tránh tự khớp lệnh, ki�
 - [ ] History phân biệt order history và trade/fill history.
 - [ ] Khi indexer trễ, UI hiển thị trạng thái đang đồng bộ thay vì báo lệnh biến mất.
 - [ ] Typecheck/lint passes.
-- [ ] Verify in browser using dev-browser skill.
+- [ ] Verify in browser using dev-browser skill or equivalent available browser tooling.
 
 ### US-014: Trải nghiệm miễn phí trên Testnet
 
@@ -245,12 +250,15 @@ Muốn đặt lệnh maker khối lượng lớn, tránh tự khớp lệnh, ki�
 **Acceptance Criteria:**
 
 - [ ] Banner Testnet luôn hiển thị rõ rằng token không có giá trị thật.
-- [ ] Onboarding liên kết tới faucet/tài liệu chính thức để lấy SUI và tài sản DeepBook Testnet cần thiết.
-- [ ] Có checklist: kết nối ví, chuyển Testnet, có gas, có token giao dịch, có/tạo BalanceManager.
-- [ ] MVP xác nhận được ít nhất một luồng hoàn chỉnh trên pool Testnet cấu hình: deposit, place order, cancel/fill và withdraw.
+- [ ] Onboarding dùng Sui faucet chính thức cho gas và token-request form DeepBook làm đường chính để lấy DEEP/quote asset.
+- [ ] Swap SUI → DEEP trên `DEEP_SUI` chỉ là fallback khi quote đủ minimum và order book có thanh khoản; UI không hứa luồng này luôn hoạt động.
+- [ ] Khi faucet hoặc token request bị giới hạn, UI giải thích trạng thái và dẫn tới hướng dẫn chính thức; không tự động gửi yêu cầu lặp lại.
+- [ ] Checklist MVP-A gồm kết nối ví, chuyển Testnet, có gas và có token giao dịch; không yêu cầu `BalanceManager` cho swap.
+- [ ] Checklist MVP-B bổ sung tạo/tái sử dụng `BalanceManager`, deposit, place order, cancel/fill và withdraw.
+- [ ] Mỗi lát cắt xác nhận được ít nhất một luồng hoàn chỉnh trên pool Testnet cấu hình trước khi được đánh dấu hoàn thành.
 - [ ] Không yêu cầu API key trả phí hoặc dịch vụ trả phí để chạy local và hoàn thành luồng kiểm thử chuẩn.
 - [ ] Typecheck/lint passes.
-- [ ] Verify in browser using dev-browser skill.
+- [ ] Verify in browser using dev-browser skill or equivalent available browser tooling.
 
 ### US-015: Khả năng phục hồi và thông báo lỗi
 
@@ -289,7 +297,7 @@ Muốn đặt lệnh maker khối lượng lớn, tránh tự khớp lệnh, ki�
 - [ ] Testnet smoke checklist bao phủ connect, deposit, swap/market order, limit order, partial/full fill nếu khả thi, cancel và withdraw.
 - [ ] `pnpm format:check`, `pnpm lint`, `pnpm typecheck`, `pnpm test` và `pnpm build` đều pass.
 - [ ] Không có mainnet endpoint/package ID trong cấu hình phát hành MVP.
-- [ ] Verify in browser using dev-browser skill.
+- [ ] Verify in browser using dev-browser skill or equivalent available browser tooling.
 
 ## 5. Functional Requirements
 
@@ -297,6 +305,7 @@ Muốn đặt lệnh maker khối lượng lớn, tránh tự khớp lệnh, ki�
 - **FR-2:** Hệ thống phải sử dụng DeepBookV3 làm matching/liquidity layer và không xây matching engine riêng trong MVP.
 - **FR-3:** Hệ thống phải dùng SDK/PTB TypeScript để tích hợp; không yêu cầu publish Move package riêng trong MVP.
 - **FR-4:** Hệ thống phải dùng gRPC, GraphQL hoặc DeepBook Indexer cho tích hợp mới; không xây mới trên JSON-RPC.
+- **FR-4a:** Web phải dùng dApp Kit React hiện hành hỗ trợ gRPC/GraphQL; không thêm package dApp Kit legacy.
 - **FR-5:** Web và API phải trao đổi qua schema đã xác thực trong package `shared`.
 - **FR-6:** Hệ thống phải hỗ trợ kết nối/ngắt kết nối ví Sui và phát hiện account/network change.
 - **FR-7:** WhaleDEX không được nhận, lưu hoặc log seed phrase/private key của người dùng.
@@ -304,10 +313,11 @@ Muốn đặt lệnh maker khối lượng lớn, tránh tự khớp lệnh, ki�
 - **FR-9:** MVP phải hỗ trợ ít nhất một pool DeepBook Testnet có đủ tài sản thử nghiệm để hoàn thành smoke test.
 - **FR-10:** Hệ thống phải hiển thị bid, ask, spread, depth và recent trades của pool đã chọn.
 - **FR-11:** Dữ liệu thị trường phải có timestamp và trạng thái stale rõ ràng.
-- **FR-12:** Hệ thống phải hỗ trợ swap exact-input/market execution với giới hạn slippage tương ứng.
+- **FR-12:** Hệ thống phải hỗ trợ swap exact-input trực tiếp từ coin trong ví, không yêu cầu `BalanceManager`, với `minOut` lớn hơn 0 theo slippage đã duyệt.
 - **FR-13:** Preview swap phải hiển thị estimated output, average execution price, price impact, fee và gas.
 - **FR-14:** Hệ thống phải hỗ trợ limit bid/ask và `POST_ONLY`.
 - **FR-15:** Price/quantity phải tuân thủ tick size, lot size và minimum size lấy từ pool.
+- **FR-15a:** Maker/taker fee, stake requirement và fee asset phải lấy từ dữ liệu pool/preview hiện hành; không hard-code theo một pool Testnet.
 - **FR-16:** Mặc định phải ngăn self-matching bằng tùy chọn DeepBook phù hợp.
 - **FR-17:** Hệ thống phải tìm và tái sử dụng `BalanceManager` trước khi tạo mới.
 - **FR-18:** Hệ thống phải cho phép nạp token vào và rút token khỏi `BalanceManager`.
@@ -427,7 +437,8 @@ Next.js Web ── đọc dữ liệu ──> Fastify API/cache ──> Sui gRPC
 
 ### MVP completion metrics
 
-- 100% luồng bắt buộc được hoàn thành trên Testnet: connect, fund, deposit, market/limit order, cancel hoặc fill, và withdraw.
+- MVP-A hoàn thành 100% luồng bắt buộc trên Testnet: connect, fund, direct-wallet swap và xác nhận kết quả.
+- MVP-B hoàn thành 100% luồng bắt buộc trên Testnet: reuse/create manager, deposit, limit order, cancel hoặc fill, và withdraw.
 - 100% write transaction có review screen và yêu cầu người dùng ký bằng ví.
 - 0 private key/seed phrase được truyền tới API, log hoặc telemetry.
 - 100% release checks (`format:check`, `lint`, `typecheck`, `test`, `build`) pass.
@@ -460,11 +471,20 @@ Next.js Web ── đọc dữ liệu ──> Fastify API/cache ──> Sui gRPC
 
 ### Phase 1 — Free Testnet MVP
 
+#### MVP-A — Swap
+
 - Wallet Sui, market catalog, order book và recent trades.
-- Swap/market execution và limit/POST_ONLY order.
-- BalanceManager, deposit, withdraw, open orders, fills và cancel.
-- Testnet onboarding, error handling, telemetry local và release gates.
+- Swap trực tiếp từ ví, preview có `minOut`, fee asset và transaction lifecycle.
+- Testnet onboarding, error handling và release gates tối thiểu.
 - Chỉ allowlisted pools; không custom contract, database hoặc paid infrastructure bắt buộc.
+
+#### MVP-B — Giao dịch nâng cao
+
+- BalanceManager, deposit, withdraw và phân biệt settled/locked balance.
+- Limit/POST_ONLY order, self-match protection, open orders, fills và cancel.
+- History, telemetry local và hardening cần thiết cho public Testnet beta.
+
+MVP-B chỉ bắt đầu sau khi MVP-A hoàn thành smoke test xuyên suốt trên pool Testnet đã cấu hình.
 
 ### Phase 2 — Public Testnet Beta
 
@@ -490,16 +510,14 @@ Next.js Web ── đọc dữ liệu ──> Fastify API/cache ──> Sui gRPC
 
 ## 11. Open Questions
 
-1. Người dùng có xác nhận Sui + DeepBookV3 là blockchain và liquidity layer chính thức không?
-2. Pool Testnet đầu tiên sẽ là `DEEP_SUI` hay một pool khác có faucet và độ sâu phù hợp?
-3. “DEX đầy đủ” có yêu cầu tạo pool permissionless ngay ở mainnet launch hay chỉ giao dịch/cung cấp thanh khoản trên pool có sẵn?
-4. WhaleDEX có thu interface fee ở mainnet không? Nếu có, mức phí và địa chỉ nhận phí là gì?
-5. Khu vực địa lý nào được phép truy cập mainnet, và có cần geo-block/sanctions screening không?
-6. Token/pool allowlist do ai quản trị và quy trình xác minh token giả mạo là gì?
-7. UI mặc định dùng tiếng Việt, tiếng Anh hay hỗ trợ cả hai?
-8. Có cần chart nến trong Phase 1 không, hay order book/recent trades đủ cho MVP?
-9. Có cần hỗ trợ nhiều `BalanceManager` cho một ví trong UI nâng cao không? MVP mặc định tái sử dụng một manager.
-10. Ngưỡng cảnh báo “giao dịch lớn” nên dựa trên USD, phần trăm độ sâu hay price impact?
+1. Pool Testnet đầu tiên sẽ là `DEEP_SUI` hay một pool khác có nguồn token và độ sâu phù hợp tại thời điểm smoke test?
+2. “DEX đầy đủ” có yêu cầu tạo pool permissionless ngay ở mainnet launch hay chỉ giao dịch/cung cấp thanh khoản trên pool có sẵn?
+3. WhaleDEX có thu interface fee ở mainnet không? Nếu có, mức phí và địa chỉ nhận phí là gì?
+4. Khu vực địa lý nào được phép truy cập mainnet, và có cần geo-block/sanctions screening không?
+5. Token/pool allowlist do ai quản trị và quy trình xác minh token giả mạo là gì?
+6. Có cần chart nến trong MVP-B không, hay order book/recent trades đủ cho bản đầu?
+7. Có cần hỗ trợ nhiều `BalanceManager` cho một ví trong UI nâng cao không? MVP-B mặc định tái sử dụng một manager.
+8. Ngưỡng cảnh báo “giao dịch lớn” nên dựa trên USD, phần trăm độ sâu hay price impact?
 
 ## 12. References
 
@@ -515,8 +533,8 @@ Next.js Web ── đọc dữ liệu ──> Fastify API/cache ──> Sui gRPC
 - [x] Đã hỏi 5 câu hỏi làm rõ với lựa chọn bằng chữ cái.
 - [x] Đã đưa câu trả lời của người dùng vào quyết định và phạm vi.
 - [x] User stories nhỏ, cụ thể và có acceptance criteria kiểm chứng được.
-- [x] Mọi UI story đều yêu cầu xác minh trong browser bằng dev-browser skill.
+- [x] Mọi UI story đều yêu cầu xác minh trong browser; dùng dev-browser skill hoặc công cụ browser tương đương đang khả dụng.
 - [x] Functional requirements được đánh số và viết không mơ hồ.
 - [x] Non-goals xác định ranh giới MVP.
 - [x] Có success metrics, roadmap và open questions.
-- [x] Tài liệu được lưu dưới `tasks/` bằng định dạng Markdown.
+- [x] Tài liệu được lưu tại `docs/prd-whaledex.md` bằng định dạng Markdown và được liên kết từ README.
