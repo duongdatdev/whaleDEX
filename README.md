@@ -40,6 +40,8 @@ Applications may depend on packages but must not import each other's code. `shar
 
 The PRD is the product source of truth, code and schemas describe implemented behavior, the roadmap controls delivery order, and ADRs record accepted architecture decisions. Planned behavior is not considered implemented until it exists in code and passes the relevant release checks.
 
+The supporting Chapter 3 requirements package contains the [AI-assisted requirements guide](docs/chapter-3/README.md), [MVP PRD](docs/chapter-3/whaledex-mvp-prd.md), [practical lab](docs/chapter-3/practical-lab.md), and [traceability matrix](docs/chapter-3/traceability-matrix.md). It is a requirements baseline, not proof that the described product features are implemented; assumption-derived items must be validated before blockchain integration begins.
+
 ## Getting started
 
 Requires Node.js **24.x** and pnpm **11.19.0**. These versions are recorded in `.nvmrc`, `.node-version`, `engines`, and `packageManager`.
