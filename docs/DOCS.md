@@ -6,9 +6,11 @@ WhaleDEX hướng tới DEX spot không lưu ký trên **5 mainnet: BNB Smart Ch
 
 Lộ trình tham khảo tài liệu người dùng cung cấp, “Web3 Wallet — Ví Web3 đa chain kèm DEX engine tự viết”: dùng chung hợp đồng quote, routing engine Uniswap V3 trên Sepolia, adapter aggregator trên mainnet, Transaction Center và quản lý quyền chi tiêu. Đây là kế hoạch, không phải mô tả tính năng đã hoàn thành.
 
-**Thay đổi phạm vi:** roadmap này thay thế định hướng Sui/DeepBook trước đây. [PRD](prd-whaledex.md), [ADR-0001](adr/0001-sui-deepbook.md), [DESIGN.md](../DESIGN.md) và README vẫn có nội dung Sui cần đồng bộ ở bước tiếp theo. BalanceManager, DEEP, object ID, dApp Kit và DeepBook order book không còn là yêu cầu triển khai của roadmap này. ADR cũ được giữ làm lịch sử; chưa có ADR EVM mới.
+**Quyết định hiện hành:** [PRD EVM 2.0](prd-whaledex.md), [ADR-0002](adr/0002-evm-multichain.md) và bộ [Chapter 3](chapter-3/README.md) thống nhất phạm vi này. [ADR-0001](adr/0001-sui-deepbook.md) chỉ là lịch sử đã bị thay thế. DESIGN ở root còn cần đồng bộ các màn hình đặc thù giao thức trước khi dùng cho EVM UI.
 
-Codebase hiện có Next.js 16, React 19, Fastify 5, TypeScript strict, pnpm/Turborepo, Zod, ESLint, Prettier và Vitest. Frontend là trang tĩnh; API có `GET /health`. Chưa có wallet, EVM SDK, quote, swap, database, indexer hoặc CI. Giữ nền tảng hiện có; không sao chép phiên bản thư viện hoặc lệnh npm từ dự án mẫu.
+Codebase hiện có Next.js 16, React 19, Fastify 5, TypeScript strict, pnpm/Turborepo, Zod và bộ kiểm tra. Commit `a13203e` đã thêm registry immutable 6 chain, schema/env validation, API `GET /v1/chains` và web `chains`/`defaultChain`. API còn có `GET /health`; frontend vẫn là trang tĩnh. Chưa có wallet, RPC transport/fallback thực thi, token registry, routing, approval, swap, history, database/indexer, CI hoặc deployment. RPC metadata chưa chứng minh endpoint đang hoạt động.
+
+API dùng `DEFAULT_CHAIN_ID`, web dùng `NEXT_PUBLIC_DEFAULT_CHAIN_ID`, mặc định `11155111`; cần cấu hình đồng nhất khi deploy, web lấy giá trị trước build. Token/spender allowlist, capability và cờ bật giao dịch bên dưới vẫn là kế hoạch.
 
 ## 2. Ma trận mạng mục tiêu
 
@@ -154,9 +156,11 @@ Allowance discovery kết hợp Approval logs và spender allowlist rồi đọc
 
 ### Giai đoạn 0 — Phạm vi, baseline và cấu hình
 
-- [ ] Đồng bộ PRD/README/DESIGN và tạo ADR EVM thay thế quyết định cũ khi cập nhật bộ tài liệu.
+- [x] Đồng bộ tài liệu trong docs và ghi ADR-0002 thay thế quyết định cũ.
+- [ ] Đồng bộ phần thiết kế đặc thù giao thức trong DESIGN và liên kết tài liệu ở README root.
 - [ ] Chạy format, lint, typecheck, test, build và thiết lập CI theo lockfile hiện có.
-- [ ] Thêm schema/config đúng 6 chain, env validation và Turbo env inputs.
+- [x] Thêm registry/schema 6 chain, default chain env validation và Turbo env inputs (`a13203e`).
+- [ ] Thêm runtime RPC health/fallback, token/deployment registry và capability/release flags.
 - [ ] Kiểm chứng wallet SDK, mainnet quote provider, deployment Sepolia và nguồn test token.
 - [ ] Lập bảng capability theo chain: RPC, quote, allowance, simulation, explorer/history và release status.
 
@@ -217,7 +221,7 @@ Gửi/nhận, portfolio nâng cao, NFT hoặc ví in-app triển khai theo đặ
 | `GET /v1/wallets/:address/history?chainId=...`    | Lịch sử có cursor và nguồn dữ liệu               |
 | `GET /v1/wallets/:address/allowances?chainId=...` | Discovery best-effort và mức độ đầy đủ           |
 
-Chỉ triển khai endpoint có UI sử dụng. Schema trong shared kiểm tra chain allowlist, address, amount, recipient, slippage và request limits. API không nhận private key hoặc tự ký. Error có mã ổn định, thông báo tiếng Việt hữu ích và request ID; không trả stack trace/secret. Chưa thêm database/indexer riêng khi provider hiện có vẫn đáp ứng.
+`GET /health` và `GET /v1/chains` đã triển khai; endpoint chains hiện trả `defaultChainId` và metadata, chưa có capability/release status. Các endpoint khác là dự kiến. Chỉ triển khai thêm endpoint có UI sử dụng. Schema chain đã có; schema address, amount, recipient, slippage và request limits còn cần triển khai. API không nhận private key hoặc tự ký. Error dự kiến có mã ổn định, thông báo tiếng Việt hữu ích và request ID; không trả stack trace/secret. Chưa thêm database/indexer riêng khi provider hiện có vẫn đáp ứng.
 
 ## 10. Kiểm thử và release gate
 
@@ -250,10 +254,10 @@ Definition of Done: acceptance criteria đạt, loading/empty/stale/error đầy
 
 ## 11. Việc bắt đầu ngay và lưu ý từ bản mẫu
 
-1. Đồng bộ bộ PRD/ADR/README/DESIGN với 6 chain và loại phụ thuộc nghiệp vụ Sui.
+1. Hoàn thiện baseline/CI và đồng bộ DESIGN cùng các liên kết README root với bộ tài liệu EVM trong docs.
 2. Chọn wallet SDK, mainnet quote source và provider theo capability thực tế, có Base.
 3. Xác minh deployment/token/liquidity Sepolia, chốt engine V3 một/hai chặng.
-4. Dựng CI, chain registry và wallet connection.
+4. Dùng registry đã có để xây RPC transport, wallet connection và network selector.
 5. Hoàn thành swap Sepolia có receipt, rồi kiểm chứng/rollout đủ 5 mainnet.
 6. Thêm permit và tính năng ví mở rộng sau khi approve/swap ổn định.
 

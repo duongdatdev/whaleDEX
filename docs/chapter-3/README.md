@@ -19,14 +19,15 @@ After completing this chapter, a learner can:
 The repository currently provides a runnable monorepo foundation:
 
 - a static Next.js frontend;
-- a Fastify API with `GET /health`;
+- a Fastify API with `GET /health` and `GET /v1/chains`;
+- an immutable six-chain registry, chain schemas, default-chain environment validation and tests (commit `a13203e`);
 - shared Zod schemas and TypeScript types;
 - environment validation, linting, formatting, tests, and builds;
 - a development roadmap in [`docs/DOCS.md`](../DOCS.md).
 
 It does **not** yet implement a wallet connection, blockchain integration, token list, quote, approval, swap, transaction history, smart contracts, database, indexer, CI, or deployment. Any example below that mentions those capabilities is a requirement or prototype scenario, not a statement of completed functionality.
 
-The case study assumes an EVM-compatible testnet and exact-input swaps to make the analysis concrete. The chain, protocol, contracts, supported tokens, confirmation policy, and infrastructure provider remain product/architecture decisions. They must be recorded in ADRs before implementation.
+The network scope is settled: BSC (56), Ethereum (1), Base (8453), Polygon PoS (137), Arbitrum One (42161), and Ethereum Sepolia (11155111). Sepolia is the current default. MVP-A builds a Uniswap V3 routing engine on Sepolia; MVP-B uses a common quote adapter on all five mainnets. See [ADR-0002](../adr/0002-evm-multichain.md) and the [canonical PRD](../prd-whaledex.md). Deployments, tokens/liquidity, SDK/provider versions and per-chain confirmation policy still need verification. Registry metadata is not a wallet, live RPC client or trading integration.
 
 ## Responsible AI workflow
 
@@ -65,14 +66,14 @@ Product discovery reduces uncertainty before delivery. AI is most useful for clu
 
 ### Discovery inputs
 
-| Input                            | Current WhaleDEX status                                  | Confidence |
-| -------------------------------- | -------------------------------------------------------- | ---------- |
-| Repository inspection            | Foundation exists; trading features do not               | High       |
-| Development roadmap              | Testnet swap is proposed as the MVP path                 | High       |
-| Target users                     | Learners/testnet evaluators are a working assumption     | Low        |
-| User pain points                 | Complexity and uncertainty in a swap flow are hypotheses | Low        |
-| Chain and protocol               | Not selected                                             | Unknown    |
-| Liquidity and token availability | Not verified                                             | Unknown    |
+| Input                            | Current WhaleDEX status                                               | Confidence                            |
+| -------------------------------- | --------------------------------------------------------------------- | ------------------------------------- |
+| Repository inspection            | Foundation and six-chain configuration exist; trading features do not | High                                  |
+| Development roadmap              | Sepolia engine first; five mainnet adapters follow                    | High                                  |
+| Target users                     | Learners/testnet evaluators are a working assumption                  | Low                                   |
+| User pain points                 | Complexity and uncertainty in a swap flow are hypotheses              | Low                                   |
+| Chain and execution direction    | Six networks selected; Sepolia V3 engine and mainnet adapter planned  | High for scope; deployment unverified |
+| Liquidity and token availability | Not verified                                                          | Unknown                               |
 
 ### Opportunity statement
 
@@ -94,12 +95,12 @@ The persona is provisional. Do not add demographic detail that has no bearing on
 
 ### Hypotheses and discovery tests
 
-| ID   | Hypothesis                                                    | Cheapest useful test                   | Success signal                                           |
-| ---- | ------------------------------------------------------------- | -------------------------------------- | -------------------------------------------------------- |
-| H-01 | New testnet users cannot distinguish approval from swap       | Five moderated prototype sessions      | At least 4/5 explain both steps without coaching         |
-| H-02 | Showing minimum received and quote expiry improves confidence | Compare two clickable prototypes       | At least 80% choose the safer quote correctly            |
-| H-03 | A guided single-route swap is enough for the first MVP        | Stakeholder review plus ten interviews | No validated P0 need for advanced routing                |
-| H-04 | Transaction status must survive refresh                       | Task-based usability test              | At least 4/5 recover a pending transaction after refresh |
+| ID   | Hypothesis                                                                  | Cheapest useful test                   | Success signal                                           |
+| ---- | --------------------------------------------------------------------------- | -------------------------------------- | -------------------------------------------------------- |
+| H-01 | New testnet users cannot distinguish approval from swap                     | Five moderated prototype sessions      | At least 4/5 explain both steps without coaching         |
+| H-02 | Showing minimum received and quote expiry improves confidence               | Compare two clickable prototypes       | At least 80% choose the safer quote correctly            |
+| H-03 | A guided single execution route is enough despite multiple candidate routes | Stakeholder review plus ten interviews | No validated need for split execution in MVP-A           |
+| H-04 | Transaction status must survive refresh                                     | Task-based usability test              | At least 4/5 recover a pending transaction after refresh |
 
 These thresholds are learning criteria, not statistically significant market validation.
 
@@ -164,16 +165,16 @@ Requirement analysis transforms product intent into a coherent, feasible, and te
 
 ### Requirement classes
 
-| Class          | Question                                  | WhaleDEX example                                                  |
-| -------------- | ----------------------------------------- | ----------------------------------------------------------------- |
-| Business       | Why invest?                               | Demonstrate a safe end-to-end testnet swap                        |
-| User           | What outcome does the user need?          | Know the network, price boundary, and transaction result          |
-| Functional     | What must the system do?                  | Refresh quote when amount or token changes                        |
-| Non-functional | How well or under what constraint?        | Keyboard-operable token selector                                  |
-| Data           | What is stored and how is it represented? | Token amounts use integer strings at API boundaries               |
-| Interface      | What crosses a system boundary?           | Quote response includes chain, tokens, expiry, and minimum output |
-| Transition     | How do states change?                     | `awaiting_signature -> submitted -> confirmed/failed/replaced`    |
-| Constraint     | What is deliberately limited?             | Supported-token allowlist on one testnet                          |
+| Class          | Question                                  | WhaleDEX example                                                                 |
+| -------------- | ----------------------------------------- | -------------------------------------------------------------------------------- |
+| Business       | Why invest?                               | Demonstrate a safe end-to-end testnet swap                                       |
+| User           | What outcome does the user need?          | Know the network, price boundary, and transaction result                         |
+| Functional     | What must the system do?                  | Refresh quote when amount or token changes                                       |
+| Non-functional | How well or under what constraint?        | Keyboard-operable token selector                                                 |
+| Data           | What is stored and how is it represented? | Token amounts use integer strings at API boundaries                              |
+| Interface      | What crosses a system boundary?           | Quote response includes chain, tokens, expiry, and minimum output                |
+| Transition     | How do states change?                     | `awaiting_signature -> submitted/pending -> confirmed/reverted/replaced/unknown` |
+| Constraint     | What is deliberately limited?             | Per-chain token allowlists; Sepolia first, five mainnets next                    |
 
 ### Quality test
 
@@ -198,19 +199,19 @@ Problems: “quickly”, “best”, and “safely” are undefined; quote sourc
 Analysed requirements:
 
 - `FR-QUOTE-01`: When input token, output token, chain, account, or amount changes, the client requests a new quote after the configured debounce interval.
-- `FR-QUOTE-02`: A quote is bound to chain ID, token addresses, input amount, route, source block/time, and expiry.
+- `FR-QUOTE-02`: Display expected/minimum output, route, applicable fees, freshness and expiry; optional metrics remain unavailable when not supplied.
 - `FR-QUOTE-03`: The confirmation action is unavailable after quote expiry or when its bound context differs from the current context.
 - `NFR-PERF-01`: The product team must define and validate a quote-response percentile target against the selected provider before release; “fast” is not an accepted target.
 
 ### Conflict and dependency analysis
 
-| Tension                                  | Analysis                                                 | Required decision                         |
-| ---------------------------------------- | -------------------------------------------------------- | ----------------------------------------- |
-| Frictionless swap vs explicit approval   | Removing explanation may increase asset-permission risk  | UX owner approves two-step presentation   |
-| Fresh quote vs provider cost/rate limit  | Aggressive refresh can overload an RPC/quote provider    | Set debounce, caching, and request budget |
-| Unlimited approval vs least privilege    | Convenience increases exposure if spender is compromised | Choose approval policy and disclose it    |
-| Immediate success vs blockchain finality | A hash is not confirmation                               | Define confirmation policy by chain       |
-| Rich history vs no indexer/database      | Client-only history is incomplete across devices         | Bound MVP history or fund an indexer      |
+| Tension                                  | Analysis                                                 | Required decision                                 |
+| ---------------------------------------- | -------------------------------------------------------- | ------------------------------------------------- |
+| Frictionless swap vs explicit approval   | Removing explanation may increase asset-permission risk  | UX owner approves two-step presentation           |
+| Fresh quote vs provider cost/rate limit  | Aggressive refresh can overload an RPC/quote provider    | Set debounce, caching, and request budget         |
+| Unlimited approval vs least privilege    | Convenience increases exposure if spender is compromised | Use required-amount approval and disclose spender |
+| Immediate success vs blockchain finality | A hash is not confirmation                               | Define confirmation policy by chain               |
+| Rich history vs no indexer/database      | Client-only history is incomplete across devices         | Bound MVP history or fund an indexer              |
 
 ### Swap state model
 
@@ -222,22 +223,26 @@ idle
 approval_required -> awaiting_approval_signature -> approval_pending
 approval_pending  -> quote_refresh_required -> quote_ready
 quote_ready       -> awaiting_swap_signature -> submitted
-submitted         -> confirmed | failed | replaced
+submitted         -> pending -> confirmed | reverted | replaced/cancelled | unknown
 any async state   -> context_changed -> revalidate
 ```
 
-Changing account, chain, token, or amount invalidates derived state. The UI must not reuse a quote or allowance from a previous context.
+Changing account, chain, recipient, token, amount or slippage invalidates quote/permit actions. Pending transactions remain tracked on their original chain/account with stable intent IDs and replacement hash lineage. Timeout is unknown, not proof of dropped or failed execution.
 
 ### Assumption and decision log
 
-| ID   | Type            | Statement                                            | Owner                  | Validation/decision gate       |
-| ---- | --------------- | ---------------------------------------------------- | ---------------------- | ------------------------------ |
-| A-01 | Assumption      | First release uses one EVM-compatible testnet        | Product                | Discovery exit                 |
-| A-02 | Assumption      | Exact-input swaps cover the first validated use case | Product                | PRD approval                   |
-| D-01 | Decision needed | Integrate an existing protocol or build an AMM       | Product + architecture | Before protocol implementation |
-| D-02 | Decision needed | Chain, RPC, explorer, and confirmation policy        | Architecture           | Before wallet spike            |
-| D-03 | Decision needed | Exact approval amount or broader allowance           | Security + product     | Before approval UI             |
-| D-04 | Decision needed | Client-only activity or indexed history              | Product + architecture | Before activity implementation |
+| ID        | Type              | Statement                                                              | Gate                                   |
+| --------- | ----------------- | ---------------------------------------------------------------------- | -------------------------------------- |
+| D-SCOPE   | Settled           | Six EVM networks and Sepolia default; ADR-0002                         | Recorded                               |
+| D-ENGINE  | Settled direction | V3 routing on Sepolia; shared mainnet quote adapter                    | Deployments/providers still unverified |
+| A-02      | Hypothesis        | Exact-input same-chain swaps meet the initial user need                | Discovery validation                   |
+| DEP-01    | Open              | RPC/fallback and per-chain confirmation policy                         | RPC client/release                     |
+| DEP-02    | Open              | Mainnet provider coverage including Base                               | Mainnet adapter                        |
+| DEP-03/04 | Open              | Contracts, tokens and Sepolia liquidity/funding                        | Routing/smoke test                     |
+| DEP-05    | Open              | Slippage/deadline/gas policy; required-amount approval is the baseline | Review UI                              |
+| DEP-06/07 | Open              | Wallet compatibility, history coverage and privacy                     | Wallet/history release                 |
+
+Use dependency definitions from the canonical PRD. An open provider decision is not permission to change the agreed networks.
 
 ## 3.4 User Stories & Acceptance Criteria
 
@@ -341,7 +346,8 @@ Scenario: Confirm a swap
 Scenario: Transaction fails or is replaced
   Given a submitted transaction is being tracked
   When the transaction reverts or is replaced
-  Then the interface shows the distinct final state
+  Then the interface shows the distinct revert or replacement state
+  And a replacement transaction is tracked until its own receipt is known
   And it does not report success solely because a transaction hash exists
 ```
 
@@ -356,17 +362,17 @@ Scenario: Transaction fails or is replaced
 
 ## 3.5 Feature Specification
 
-This section specifies the first vertical slice: an exact-input testnet swap. It stays protocol-neutral until the project approves the chain and trading model.
+This section specifies MVP-A: an exact-input Ethereum Sepolia swap using the planned V3 routing engine. The schema also supports MVP-B same-chain mainnet adapters. FR/NFR and story IDs are shared with the canonical PRD; this is not a competing specification.
 
 ### Feature boundary
 
 **In scope:** supported-token selection, amount entry, quote display, slippage within an approved range, allowance check, approval when required, preflight validation/simulation, wallet submission, receipt tracking, refresh recovery, and explorer link.
 
-**Out of scope:** mainnet funds, cross-chain, exact-output, split routes, limit orders, fiat, arbitrary tokens, portfolio accounting, and guaranteed cross-device history.
+**Out of this learning slice:** real mainnet transactions, cross-chain, exact-output, split execution, limit orders, fiat, arbitrary tokens and guaranteed cross-device history. Five mainnets remain in product MVP-B; lab execution uses fixtures/local environments or Sepolia.
 
 ### Preconditions
 
-- An ADR approves chain, protocol model, deployment addresses, RPC, explorer, and confirmation policy.
+- ADR-0002 fixes network scope; deployments, RPC capability and confirmation policy are independently verified before execution.
 - Contract bytecode and ABI are verified for the selected chain.
 - Supported tokens have verified address and decimals.
 - A testnet feasibility transaction proves quote, approval, swap, and receipt behaviour.
@@ -379,6 +385,7 @@ All asset quantities are decimal strings representing integer smallest units.
 type QuoteRequest = {
   chainId: number;
   account: `0x${string}`;
+  recipient: `0x${string}`;
   tokenIn: `0x${string}` | 'native';
   tokenOut: `0x${string}` | 'native';
   amountIn: string;
@@ -387,24 +394,29 @@ type QuoteRequest = {
 
 type QuoteResponse = {
   quoteId: string;
+  inputFingerprint: string;
+  account: `0x${string}`;
+  recipient: `0x${string}`;
+  source: 'sepolia-v3' | 'mainnet-adapter';
   chainId: number;
   tokenIn: string;
   tokenOut: string;
   amountIn: string;
   expectedAmountOut: string;
   minimumAmountOut: string;
-  spender: `0x${string}`;
+  approvalSpender: `0x${string}` | null; // null when approval is unnecessary
   transactionTarget: `0x${string}`;
   transactionValue: string;
   route: Array<{ pool: string; tokenIn: string; tokenOut: string }>;
-  estimatedGas?: string;
+  estimatedGas: string | null;
+  priceImpactPct: string | null;
   sourceBlock?: string;
   createdAt: string;
   expiresAt: string;
 };
 ```
 
-The final contract may differ by protocol. If an external service returns calldata, the client/server adapter must verify chain, target, value, spender, tokens, amount, deadline, and output bound against the approved deployment before offering it for signature.
+This sketch is not implemented. Final field names must be reconciled with shared schemas; mainnet and Sepolia adapters use the same public contract. If an external service returns calldata, the client/server adapter must verify chain, target, value, spender, tokens, amount, deadline, and output bound against the approved deployment before offering it for signature.
 
 ### Interaction rules
 
@@ -416,7 +428,7 @@ The final contract may differ by protocol. If an external service returns callda
 6. Refresh the quote after approval because price, route, block, or deadline may have changed.
 7. Simulate and estimate gas against current context before requesting a swap signature.
 8. Treat wallet signature, broadcast, inclusion, confirmation, failure, and replacement as distinct states.
-9. Persist only the minimum transaction tracking tuple: chain ID, account, hash, submitted time, and last known state.
+9. Persist an internal intent ID, chain/account, nonce when known, original/replacement hashes, submission time and state; do not persist permit signatures.
 10. Never request or store a seed phrase or private key.
 
 ### Observability and analytics
@@ -437,7 +449,7 @@ Retention, consent, address pseudonymisation, and analytics-provider choices req
 ### Release gates
 
 - All P0 acceptance criteria pass on a deterministic local/fork environment where possible.
-- A smoke test passes against the approved testnet deployment.
+- A smoke test passes against verified Ethereum Sepolia deployments; MVP-B also needs independent evidence for each mainnet.
 - No known critical/high asset-safety issue remains open.
 - Unsupported-network, stale-quote, rejection, revert, replacement, and RPC-outage paths are demonstrated.
 - Product, engineering, QA, security, and operations owners approve the evidence relevant to their area.
@@ -450,6 +462,6 @@ Retention, consent, address pseudonymisation, and analytics-provider choices req
 3. Which context changes must invalidate a quote?
 4. What information should a user see before approving an ERC-20 spender?
 5. Where can AI accelerate analysis, and where is human approval mandatory?
-6. How would the PRD change if the team chose to build an AMM rather than integrate an existing protocol?
+6. Why do Sepolia engine tests not prove Base or the other mainnet adapters are ready?
 
 Continue with [Practical Lab 3](practical-lab.md), then use the [traceability matrix](traceability-matrix.md) to audit the result.

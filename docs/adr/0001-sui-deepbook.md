@@ -1,10 +1,12 @@
 # ADR-0001: Sử dụng Sui và DeepBookV3 cho Testnet MVP
 
-- **Trạng thái:** Accepted
+- **Trạng thái:** Superseded — được thay thế bởi [ADR-0002](0002-evm-multichain.md) ngày 2026-09-21.
 - **Ngày quyết định:** 2026-09-15
 - **Phạm vi:** WhaleDEX Testnet MVP
 
 ## Bối cảnh
+
+> Tài liệu lịch sử: các quyết định bên dưới không còn áp dụng cho triển khai hiện tại. Phạm vi hiện hành là 5 EVM mainnet và Ethereum Sepolia theo ADR-0002. Giữ nội dung cũ để truy vết quyết định.
 
 WhaleDEX cần một lớp thanh khoản spot dạng central limit order book (CLOB), hỗ trợ swap đơn giản và trải nghiệm giao dịch nâng cao mà không giữ private key của người dùng. Codebase hiện tại là monorepo TypeScript với Next.js và Fastify, chưa có blockchain integration.
 

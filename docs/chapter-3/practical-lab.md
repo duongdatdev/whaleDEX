@@ -10,12 +10,16 @@ repository evidence -> discovery hypothesis -> PRD goal -> requirement -> story 
 
 Recommended duration: 90–120 minutes. Work in pairs where possible: one learner operates the AI assistant and one challenges evidence and acceptance criteria; swap roles halfway.
 
+## Current scope
+
+Use [ADR-0002](../adr/0002-evm-multichain.md) and the [product PRD](../prd-whaledex.md): BSC 56, Ethereum 1, Base 8453, Polygon PoS 137, Arbitrum One 42161 and Ethereum Sepolia 11155111. Registry/catalog are implemented; wallet and trading are not. MVP-A uses a V3 routing engine on Sepolia; MVP-B adds same-chain mainnet adapters. Lab execution stays on fixtures/local environments or Sepolia, without real funds.
+
 ## Rules
 
 - Do not use real funds, private keys, seed phrases, production credentials, or personal interview data.
 - Use the repository and approved stakeholder notes as evidence.
 - Mark unsupported statements as assumptions or questions.
-- Do not ask AI to select a chain, contract, or provider without human verification.
+- Do not reopen settled chain scope. Ask AI for missing contract/provider evidence instead of invented deployments.
 - Keep an audit note containing input sources, prompt, output, edits, reviewer, and date.
 
 ## Part A — Inspect before proposing
@@ -42,13 +46,14 @@ Do not infer implementation from roadmap text. List contradictions and missing e
 
 ### Illustrative answer
 
-| Capability              | Status      | Evidence                                                     | Confidence |
-| ----------------------- | ----------- | ------------------------------------------------------------ | ---------- |
-| Static web landing page | Implemented | `apps/web/src/app/page.tsx`                                  | High       |
-| API process health      | Implemented | `GET /health` in `apps/api/src/app.ts`                       | High       |
-| Wallet connection       | Absent      | README future-development statement; no wallet feature files | High       |
-| Quote/swap              | Proposed    | Roadmap phases 4–5                                           | High       |
-| Target user validated   | No evidence | No research artefact in repository                           | High       |
+| Capability                 | Status      | Evidence                                                        | Confidence |
+| -------------------------- | ----------- | --------------------------------------------------------------- | ---------- |
+| Static web landing page    | Implemented | `apps/web/src/app/page.tsx`                                     | High       |
+| API process health         | Implemented | `GET /health` in `apps/api/src/app.ts`                          | High       |
+| Six-chain registry/catalog | Implemented | `packages/shared/src/chains.ts`, API catalog and tests; a13203e | High       |
+| Wallet connection          | Absent      | README future-development statement; no wallet feature files    | High       |
+| Quote/swap                 | Proposed    | Roadmap stages 2–3                                              | High       |
+| Target user validated      | No evidence | No research artefact in repository                              | High       |
 
 ## Part B — Discovery synthesis
 
@@ -105,12 +110,16 @@ Identify at least eight defects. A strong review finds:
 - “every token” conflicts with the proposed allowlist;
 - chain, amount, account, slippage, freshness, expiry, and failures are missing;
 - output and verification method are undefined;
-- the selected protocol may provide only one route;
+- no route candidate universe or gas-conversion source is defined;
 - no source evidence supports the claim.
 
 ### Improved requirement
 
-> `FR-QUOTE-02`: For a quote bound to the current chain, account, supported token pair, input amount, slippage, route, and deployment context, WhaleDEX shall display expected output, minimum received, route, applicable fees, source freshness, expiry, and gas estimate when available. If the quote expires or its bound context changes, WhaleDEX shall disable transaction confirmation until a current quote is available.
+> FR-QUOTE-02: Display expected output, minimum received, route, applicable fees, source freshness and expiry for the current quote; unavailable gas/price-impact data must stay explicitly unavailable.
+
+> FR-QUOTE-03: Disable confirmation when quote expiry or the current chain/account/recipient/token/amount/slippage/deployment context invalidates the quote.
+
+These are separate requirements so display and invalidation can be tested independently. Route generation belongs to FR-ROUTING-01; five-mainnet adapter coverage belongs to FR-MAINNET-01.
 
 ### AI red-team prompt
 
@@ -138,7 +147,11 @@ Write Given/When/Then criteria for:
 5. account or chain change;
 6. provider timeout;
 7. missing gas estimate;
-8. keyboard and screen-reader behaviour.
+8. keyboard and screen-reader behaviour;
+9. switching from Sepolia to Base during a quote request;
+10. an aggregator returning a cross-chain route;
+11. missing price-impact data;
+12. a pending transaction that times out or is replaced.
 
 ### Illustrative tests
 
@@ -161,10 +174,11 @@ Scenario: Optional gas estimate is unavailable
   Given a current quote is otherwise valid
   When the provider cannot supply a gas estimate
   Then the interface labels the estimate as unavailable
-  And the product applies its approved policy on whether the user may continue
+  And quote review does not imply execution readiness
+  And signing still requires the configured gas and successful-simulation checks
 ```
 
-Notice that the last criterion exposes a product decision rather than inventing one.
+Distinguish preview completeness from permission to sign. FR-SWAP-01 requires successful simulation under the current policy; unknown is not success. Numeric gas/slippage thresholds remain DEP-05 decisions.
 
 ## Part E — Build traceability
 
@@ -206,6 +220,18 @@ Stakeholder change request:
 
 The correct outcome is not automatically “accept” or “reject”. The product owner records a decision after evidence, risk, effort, and release goal are reviewed.
 
+### Additional network-change exercise
+
+A Sepolia quote is pending when the user selects Base (8453). Explain why:
+
+- the old response cannot populate the Base form;
+- Base token/spender/target configuration needs independent verification;
+- an already-submitted Sepolia transaction stays tracked on Sepolia;
+- a successful Sepolia swap does not satisfy FR-MAINNET-01;
+- missing provider support is shown as unavailable rather than a fabricated quote.
+
+Add planned tests to the matrix. FR-CONFIG-01 already has real source/test evidence; planned runtime tests do not change that evidence or prove wallet integration.
+
 ## Deliverables
 
 Submit:
@@ -213,7 +239,7 @@ Submit:
 1. completed evidence table;
 2. discovery synthesis with observation IDs;
 3. defect review and corrected requirement;
-4. story plus at least eight acceptance scenarios;
+4. story plus at least twelve acceptance scenarios including network/provider changes;
 5. updated traceability rows;
 6. change-impact analysis;
 7. a short AI audit note describing what was accepted, edited, or rejected and why.
@@ -238,5 +264,5 @@ Ask learners:
 - Which AI suggestion sounded plausible but lacked evidence?
 - Which acceptance criterion forced a product decision into the open?
 - Which repository fact changed the proposed scope?
-- How would the artefacts differ for a custom AMM?
-- What would have to be true before this package could authorize mainnet work?
+- How does a self-written routing engine differ from a custom AMM contract?
+- What per-chain evidence is missing before enabling transactions on all five mainnets?
