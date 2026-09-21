@@ -30,34 +30,32 @@ WhaleDEX là sàn giao dịch phi tập trung (Spot DEX) không lưu ký trên *
 
 ### 3.1. Bảng màu (Color Palette)
 
-| Token                    | Giá trị                     | Vai trò                                                      |
-| ------------------------ | --------------------------- | ------------------------------------------------------------ |
-| `--color-background`     | `#060B14`                   | Nền toàn trang (Deep Obsidian Dark)                          |
-| `--color-surface`        | `#0B1322`                   | Nền panel module, khung form, bảng dữ liệu                   |
-| `--color-surface-raised` | `#111C30`                   | Hộp thoại modal, dropdown menu, tooltip                      |
-| `--color-surface-hover`  | `#182742`                   | Trạng thái hover của hàng dữ liệu và control phụ             |
-| `--color-border`         | `#1E2E48`                   | Viền laser mảnh 1px ngăn cách các module                     |
-| `--color-border-subtle`  | `rgba(255, 255, 255, 0.08)` | Viền siêu mảnh phân chia hàng/cột nội bộ                     |
-| `--color-control-border` | `#3B5278`                   | Viền nhận diện ô nhập dữ liệu (input)                        |
-| `--color-border-glow`    | `rgba(0, 240, 255, 0.35)`   | Viền laser phát sáng khi focus/active                        |
-| `--color-text`           | `#F1F5FA`                   | Văn bản chính, tiêu đề                                       |
-| `--color-text-muted`     | `#8E9FB8`                   | Chú thích phụ, label nhãn, placeholder                       |
-| `--color-primary`        | `#00F0FF`                   | Xanh điện quang (Electric Cyan / Sui Blue), hành động chính  |
-| `--color-primary-hover`  | `#38BDF8`                   | Trạng thái hover nút chính                                   |
-| `--color-on-primary`     | `#060B14`                   | Màu chữ/icon trên nền nút chính (độ tương phản cao)          |
-| `--color-focus`          | `#00F0FF`                   | Vòng focus viền laser 2px                                    |
-| `--color-positive`       | `#00E599`                   | Cyber Emerald: Mua, nến tăng, thành công (luôn kèm nhãn chữ) |
-| `--color-negative`       | `#FF3B69`                   | Cyber Crimson: Bán, nến giảm, lỗi (luôn kèm nhãn chữ)        |
-| `--color-warning`        | `#F5C56A`                   | Cảnh báo trượt giá / tác động giá lớn                        |
-| `--color-testnet`        | `#A78BFA`                   | Nhận biết môi trường Sui Testnet                             |
-| `--color-overlay`        | `rgb(3 6 12 / 80%)`         | Lớp nền tối mờ sau modal                                     |
-| `--color-glow-primary`   | `rgba(0, 240, 255, 0.15)`   | Hào quang micro-glow nhẹ quanh control chính                 |
-| `--color-tick-up`        | `rgba(0, 229, 153, 0.18)`   | Nền chớp flash khi giá khớp tăng                             |
-| `--color-tick-down`      | `rgba(255, 59, 105, 0.18)`  | Nền chớp flash khi giá khớp giảm                             |
+| Token                    | Giá trị                     | Vai trò                                                     |
+| ------------------------ | --------------------------- | ----------------------------------------------------------- |
+| `--color-background`     | `#060B14`                   | Nền toàn trang (Deep Obsidian Dark)                         |
+| `--color-surface`        | `#0B1322`                   | Nền panel module, khung form, bảng dữ liệu                  |
+| `--color-surface-raised` | `#111C30`                   | Hộp thoại modal, dropdown menu, tooltip                     |
+| `--color-surface-hover`  | `#182742`                   | Trạng thái hover của hàng dữ liệu và control phụ            |
+| `--color-border`         | `#1E2E48`                   | Viền laser mảnh 1px ngăn cách các module                    |
+| `--color-border-subtle`  | `rgba(255, 255, 255, 0.08)` | Viền siêu mảnh phân chia hàng/cột nội bộ                    |
+| `--color-control-border` | `#3B5278`                   | Viền cần thiết để nhận biết ô nhập dữ liệu (input)          |
+| `--color-text`           | `#F1F5FA`                   | Văn bản chính, tiêu đề                                      |
+| `--color-text-muted`     | `#8E9FB8`                   | Chú thích phụ, label nhãn, placeholder                      |
+| `--color-primary`        | `#00F0FF`                   | Xanh điện quang (Electric Cyan / Sui Blue), hành động chính |
+| `--color-primary-hover`  | `#38BDF8`                   | Trạng thái hover nút chính                                  |
+| `--color-on-primary`     | `#060B14`                   | Màu chữ/icon trên nền nút chính (độ tương phản cao)         |
+| `--color-focus`          | `#00F0FF`                   | Vòng focus viền sắc nét 2px                                 |
+| `--color-positive`       | `#00E599`                   | Cyber Emerald: Mua, nến tăng, thành công (luôn kèm nhãn)    |
+| `--color-negative`       | `#FF3B69`                   | Cyber Crimson: Bán, nến giảm, lỗi (luôn kèm nhãn)           |
+| `--color-warning`        | `#F5C56A`                   | Cảnh báo trượt giá / tác động giá lớn                       |
+| `--color-testnet`        | `#A78BFA`                   | Nhận biết môi trường Sui Testnet                            |
+| `--color-overlay`        | `rgb(3 6 12 / 80%)`         | Lớp nền tối mờ sau modal                                    |
+| `--color-tick-up`        | `rgba(0, 229, 153, 0.18)`   | Nền chớp flash khi giá khớp tăng                            |
+| `--color-tick-down`      | `rgba(255, 59, 105, 0.18)`  | Nền chớp flash khi giá khớp giảm                            |
 
 **Quy tắc áp dụng:**
 
-- **Nút chính (Primary CTA):** Luôn dùng nền `--color-primary` và chữ `--color-on-primary`, hỗ trợ micro-glow `box-shadow: 0 0 10px var(--color-glow-primary)`.
+- **Nút chính (Primary CTA):** Nền đặc `--color-primary` và chữ đậm `--color-on-primary`; thiết kế phẳng, sắc nét, tuyệt đối không dùng hiệu ứng phát sáng mờ (glow/aura/neon). Trạng thái active/hover nhận biết qua màu nền và đường viền sắc gọn.
 - **Phân tách module:** Dùng đường viền sắc nét `1px solid var(--color-border)` thay vì đổ bóng mờ lớn. Dialog/popover dùng shadow: `0 12px 36px rgb(0 0 0 / 50%)`.
 - **Kính kỹ thuật mờ nhẹ:** Cho phép `backdrop-filter: blur(8px)` trên Header và floating widget nhưng không áp dụng trực tiếp che lấp số liệu sổ lệnh.
 
@@ -153,7 +151,7 @@ Thiết kế sắc nét theo phong cách Module Terminal, tối ưu mật độ 
 
 ### 5.1. Landing Page (Cyber-Fintech Hero)
 
-1. **Hero Section:** Tiêu đề "Giao dịch rõ ràng, dễ bắt đầu", mô tả ngắn, CTA "Mở ứng dụng" (viền micro-glow) và "Hướng dẫn Testnet". Minh họa radar/vector đại dương công nghệ, nền subtle tech grid.
+1. **Hero Section:** Tiêu đề "Giao dịch rõ ràng, dễ bắt đầu", mô tả ngắn, CTA "Mở ứng dụng" (nút phẳng tương phản cao) và "Hướng dẫn Testnet". Minh họa radar/vector đại dương công nghệ, nền subtle tech grid.
 2. **Hai chế độ giao dịch:** Phân biệt trực quan giữa Đổi token (Swap) tiện lợi và Bàn giao dịch Nâng cao (Pro Terminal).
 3. **Quy trình 3 bước:** Kết nối ví Sui → Nhận token Faucet → Xem trước & Ký giao dịch.
 4. **FAQ Accordion:** Giải đáp các câu hỏi về Testnet, quyền tự lưu ký, `BalanceManager` và phí gas SUI.
@@ -202,17 +200,17 @@ Giải thích rõ: _"Tài khoản giao dịch (BalanceManager) giữ tài sản 
 
 ## 6. Thư viện Component cốt lõi
 
-| Component           | Quy chuẩn thiết kế                                                                                                   |
-| ------------------- | -------------------------------------------------------------------------------------------------------------------- |
-| **Button**          | Primary CTA có viền laser sắc nét và micro-glow cyan; hỗ trợ trạng thái loading giữ nguyên kích thước để chống spam. |
-| **Amount Input**    | Số tiền hiển thị font `JetBrains Mono` cỡ lớn, căn phải; nhãn trên, số dư góc phải, lỗi validation bên dưới.         |
-| **Token Selector**  | Tìm kiếm token trong danh sách allowlist, hiển thị rõ symbol và coin type rút gọn.                                   |
-| **Telemetry Badge** | Chỉ báo độ trễ ping ms, epoch với đèn Live Pulse nhấp nháy chu kỳ 2s.                                                |
-| **Orderbook Table** | Bảng số liệu Monospace tabular-nums, phân màu mua/bán rõ nét, tích hợp hiệu ứng Tick-Flash 250ms.                    |
-| **Tabs Control**    | Tab active có đường viền cyan laser; hỗ trợ điều hướng bàn phím (mũi tên, Home/End).                                 |
-| **Modal Dialog**    | Bo góc 10px, viền laser, shadow tối sâu; tự động trap focus và đóng bằng phím Escape.                                |
-| **Inline Alert**    | Viền trái 3px màu semantic (vàng cảnh báo / đỏ lỗi), kèm giải thích nguyên nhân và nút hành động khắc phục.          |
-| **Skeleton**        | Shimmer quét sáng nhẹ 1.5s, kích thước tương đương layout thật; không làm giật bảng dữ liệu khi refresh.             |
+| Component           | Quy chuẩn thiết kế                                                                                                 |
+| ------------------- | ------------------------------------------------------------------------------------------------------------------ |
+| **Button**          | Primary CTA phẳng lì, viền sắc nét, tương phản cao; hỗ trợ trạng thái loading giữ nguyên kích thước để chống spam. |
+| **Amount Input**    | Số tiền hiển thị font `JetBrains Mono` cỡ lớn, căn phải; nhãn trên, số dư góc phải, lỗi validation bên dưới.       |
+| **Token Selector**  | Tìm kiếm token trong danh sách allowlist, hiển thị rõ symbol và coin type rút gọn.                                 |
+| **Telemetry Badge** | Chỉ báo độ trễ ping ms, epoch với đèn Live Pulse nhấp nháy chu kỳ 2s.                                              |
+| **Orderbook Table** | Bảng số liệu Monospace tabular-nums, phân màu mua/bán rõ nét, tích hợp hiệu ứng Tick-Flash 250ms.                  |
+| **Tabs Control**    | Tab active có đường viền cyan laser; hỗ trợ điều hướng bàn phím (mũi tên, Home/End).                               |
+| **Modal Dialog**    | Bo góc 10px, viền laser, shadow tối sâu; tự động trap focus và đóng bằng phím Escape.                              |
+| **Inline Alert**    | Viền trái 3px màu semantic (vàng cảnh báo / đỏ lỗi), kèm giải thích nguyên nhân và nút hành động khắc phục.        |
+| **Skeleton**        | Shimmer quét sáng nhẹ 1.5s, kích thước tương đương layout thật; không làm giật bảng dữ liệu khi refresh.           |
 
 ---
 
@@ -313,7 +311,7 @@ Mọi thao tác thay đổi trạng thái (Tạo tài khoản, Nạp, Rút, Đ�
 - [ ] Route, nhãn tiếng Việt và chế độ mặc định hiển thị chính xác theo tài liệu.
 - [ ] Áp dụng chuẩn bảng màu Cyber, hệ thống font kép (Be Vietnam Pro + JetBrains Mono) và bo góc 4–8px sắc nét.
 - [ ] Toàn bộ UI tuân thủ chính sách Zero-Fluff: không có text rác, placeholder, marketing sáo rỗng hay số liệu giả; mọi nút bấm, tooltip và empty state đều có hướng dẫn hành động cụ thể.
-- [ ] Hiệu ứng công nghệ (Tick-Flash, Live Telemetry Pulse, Micro-glow) mượt mà; tự động tắt khi bật `prefers-reduced-motion`.
+- [ ] Hiệu ứng công nghệ (Tick-Flash, Live Telemetry Pulse) mượt mà; tự động tắt khi bật `prefers-reduced-motion`.
 - [ ] Số dư ví và `BalanceManager` tách biệt rõ ràng; các thao tác nạp/rút SUI luôn trừ gas reserve an toàn.
 - [ ] Form Swap và Orderbook tuân thủ chặt chẽ quy tắc tick/lot size của DeepBookV3.
 - [ ] Quy trình Review 2 bước hiển thị đầy đủ trước khi mở ví ký; xử lý trơn tru các trạng thái `submitted`, `confirmed`, `failed`.
