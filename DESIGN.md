@@ -14,91 +14,116 @@ Thiết kế bắt đầu mới hoàn toàn. Màu, font và bố cục của tra
 2. **Rõ trước khi ký:** số lượng, phí, gas, giá dự kiến, giới hạn thực thi và mạng phải được hiểu trước khi mở ví.
 3. **Dữ liệu có ngữ cảnh:** luôn phân biệt số dư ví và tài khoản giao dịch, dữ liệu mới và dữ liệu cũ, đã gửi và đã xác nhận.
 4. **Ổn định khi thao tác:** cập nhật thị trường không làm mất focus, đổi cặp đang chọn, sửa nội dung nhập hoặc dịch chuyển nút xác nhận.
-5. **Một ngôn ngữ thị giác:** nền than xanh, bề mặt phẳng phân lớp nhẹ, xanh biển cho hành động chính; màu mua/bán có ý nghĩa riêng.
+5. **Một ngôn ngữ thị giác (Cyber-Fintech Terminal):** nền than không gian sâu (deep obsidian), các module sắc nét viền laser mảnh, màu điểm nhấn xanh điện quang (Electric Cyan / Sui Blue); màu mua/bán chuẩn thị trường tốc độ cao có ý nghĩa rõ ràng.
 6. **Trung thực:** không hiển thị dữ liệu giả như dữ liệu thật, không hứa lợi nhuận hoặc giá khớp chắc chắn, không tạo bằng chứng đối tác/chứng nhận chưa có.
 
-Landing page dành cho người dùng crypto muốn hiểu và thử sản phẩm, với phong cách tối, tinh gọn và dễ tiếp cận. Bố cục có điểm nhấn nhưng chuyển động tiết chế. Ứng dụng dùng cùng nhận diện với mật độ dữ liệu tăng theo nhiệm vụ, không áp dụng bố cục quảng bá vào bảng giao dịch.
+Landing page dành cho người dùng crypto muốn hiểu và thử sản phẩm, với phong cách tối công nghệ (cyber-dark), hiện đại với subtle tech grid, hiệu ứng ánh sáng đại dương sâu (deep ocean glow) và luồng dữ liệu mượt mà. Bố cục có điểm nhấn công nghệ nhưng chuyển động tiết chế. Ứng dụng web giao dịch dùng cùng nhận diện với mật độ dữ liệu cao kiểu trading desk terminal, không áp dụng bố cục quảng bá vào bảng giao dịch.
 
 ## 3. Hệ thống thị giác
 
 ### 3.1. Màu sắc
 
-Dùng token ngữ nghĩa làm CSS custom properties khi triển khai. Component tham chiếu token, không tự thêm mã màu. Các giá trị dưới đây là chuẩn mới, không trích từ CSS mẫu.
+Dùng token ngữ nghĩa làm CSS custom properties khi triển khai. Component tham chiếu token, không tự thêm mã màu. Các giá trị dưới đây là chuẩn Cyber-Fintech Trading Terminal:
 
-| Token                    | Giá trị             | Vai trò                                   |
-| ------------------------ | ------------------- | ----------------------------------------- |
-| `--color-background`     | `#0B1220`           | Nền toàn trang                            |
-| `--color-surface`        | `#121D2E`           | Form, bảng, vùng nội dung                 |
-| `--color-surface-raised` | `#1B2A40`           | Dialog, popover, vùng nổi                 |
-| `--color-surface-hover`  | `#243650`           | Hover của hàng và control phụ             |
-| `--color-border`         | `#34465F`           | Đường phân nhóm và viền trang trí         |
-| `--color-control-border` | `#71839B`           | Viền cần thiết để nhận biết input/control |
-| `--color-text`           | `#F1F5FA`           | Nội dung chính                            |
-| `--color-text-muted`     | `#A8B8CF`           | Chú thích, label phụ, placeholder         |
-| `--color-primary`        | `#5BA7F7`           | Nút chính, liên kết, mục đang chọn        |
-| `--color-primary-hover`  | `#80BCFA`           | Hover của nút chính                       |
-| `--color-on-primary`     | `#0B1220`           | Chữ và icon trên nút xanh biển            |
-| `--color-focus`          | `#9ACBFF`           | Vòng focus                                |
-| `--color-positive`       | `#56D6A0`           | Mua, tăng giá, thành công, luôn kèm nhãn  |
-| `--color-negative`       | `#FF8C98`           | Bán, giảm giá, lỗi, luôn kèm nhãn         |
-| `--color-warning`        | `#F5C56A`           | Cảnh báo cần chú ý                        |
-| `--color-testnet`        | `#C4B5FD`           | Nhận biết môi trường Testnet              |
-| `--color-overlay`        | `rgb(3 8 16 / 72%)` | Lớp nền sau dialog                        |
+| Token                    | Giá trị                     | Vai trò                                               |
+| ------------------------ | --------------------------- | ----------------------------------------------------- |
+| `--color-background`     | `#060B14`                   | Nền than không gian sâu (Deep Obsidian)               |
+| `--color-surface`        | `#0B1322`                   | Nền panel, khung form, module dữ liệu                 |
+| `--color-surface-raised` | `#111C30`                   | Dialog, popover, widget nổi                           |
+| `--color-surface-hover`  | `#182742`                   | Hover của hàng sổ lệnh và control phụ                 |
+| `--color-border`         | `#1E2E48`                   | Đường viền laser mảnh ngăn cách các module            |
+| `--color-border-subtle`  | `rgba(255, 255, 255, 0.08)` | Viền siêu mảnh bên trong các widget                   |
+| `--color-control-border` | `#3B5278`                   | Viền cần thiết để nhận biết input/control             |
+| `--color-border-glow`    | `rgba(0, 240, 255, 0.35)`   | Viền laser khi focus/active                           |
+| `--color-text`           | `#F1F5FA`                   | Nội dung chính, nhãn tiêu đề                          |
+| `--color-text-muted`     | `#8E9FB8`                   | Chú thích, label phụ, placeholder                     |
+| `--color-primary`        | `#00F0FF`                   | Xanh điện quang (Electric Cyan / Sui Blue), nút chính |
+| `--color-primary-hover`  | `#38BDF8`                   | Hover của nút chính                                   |
+| `--color-on-primary`     | `#060B14`                   | Chữ và icon đậm nét trên nền xanh điện quang          |
+| `--color-focus`          | `#00F0FF`                   | Vòng focus viền laser sắc nét                         |
+| `--color-positive`       | `#00E599`                   | Cyber Emerald: Mua, tăng giá, thành công (kèm nhãn)   |
+| `--color-negative`       | `#FF3B69`                   | Cyber Crimson: Bán, giảm giá, lỗi (kèm nhãn)          |
+| `--color-warning`        | `#F5C56A`                   | Vàng cảnh báo cần chú ý                               |
+| `--color-testnet`        | `#A78BFA`                   | Nhận biết môi trường Sui Testnet                      |
+| `--color-overlay`        | `rgb(3 6 12 / 80%)`         | Lớp nền tối mờ sau dialog                             |
+| `--color-glow-primary`   | `rgba(0, 240, 255, 0.15)`   | Hào quang micro-glow nhẹ quanh control chính          |
+| `--color-tick-up`        | `rgba(0, 229, 153, 0.18)`   | Nền chớp flash khi giá khớp tăng                      |
+| `--color-tick-down`      | `rgba(255, 59, 105, 0.18)`  | Nền chớp flash khi giá khớp giảm                      |
 
-- Nút chính dùng nền primary và chữ on-primary; không dùng chữ trắng trên xanh sáng.
-- Màu semantic dùng cho chữ/icon trên surface. Nếu dùng làm nền đặc, chữ dùng on-primary và phải kiểm tra tương phản.
+- Nút chính dùng nền primary (`#00F0FF`) và chữ on-primary (`#060B14`); độ tương phản cao và nổi bật trên nền tối.
+- Màu semantic dùng cho chữ/icon trên surface. Cho phép hiệu ứng **micro-glow** và **viền laser mảnh** (`box-shadow: 0 0 10px var(--color-glow-primary)`) trên nút chính, trạng thái active và viền focus để tạo chất công nghệ cao.
+- Cho phép lớp kính kỹ thuật mờ nhẹ (`backdrop-filter: blur(8px)`) trên thanh Header và thanh trạng thái nổi mà không làm giảm tương phản số liệu.
+- Phân cách các module giao dịch bằng đường viền laser sắc nét `1px solid var(--color-border)` thay cho bóng đổ mờ lớn. Dialog/popover dùng shadow gọn gàng: `0 12px 36px rgb(0 0 0 / 50%)`.
 - Badge Testnet dùng chữ testnet trên surface-raised, không dùng làm CTA hay màu thương hiệu thứ hai.
-- Border trang trí không thay thế control-border khi đường viền là dấu hiệu nhận biết control.
-- Không dùng glow neon, gradient chữ, lớp kính mờ trên bảng số liệu hoặc bóng đổ lớn. Shadow chỉ dùng cho dialog/popover: `0 16px 48px rgb(3 8 16 / 32%)`.
 - Disabled dùng nền surface-raised, chữ text-muted, kèm lý do ở gần. Không giảm opacity cả nhóm khiến thông tin cần đọc bị mờ.
 
 ### 3.2. Typography
 
-Font chính là **Be Vietnam Pro**, fallback `system-ui, sans-serif`. Khi xây UI, tải bằng `next/font` hoặc tự host; dùng các weight 400, 500, 600, 700. Kiểm tra dấu tiếng Việt ở cả chữ hoa và chữ thường. Không thêm font chỉ để tạo vẻ công nghệ.
+Sử dụng kiến trúc font kép (**Dual-Typeface Architecture**) chuẩn hệ thống giao dịch chuyên nghiệp:
 
-| Token              | Cỡ chữ / line-height           | Weight | Sử dụng                                  |
-| ------------------ | ------------------------------ | ------ | ---------------------------------------- |
-| `--type-display`   | `clamp(32px, 4vw, 56px)` / 1.2 | 700    | Tiêu đề landing; tối đa hai dòng desktop |
-| `--type-heading-1` | 32px / 1.3                     | 700    | Tiêu đề trang                            |
-| `--type-heading-2` | 24px / 1.35                    | 600    | Tiêu đề khu vực                          |
-| `--type-heading-3` | 18px / 1.45                    | 600    | Tiêu đề panel/dialog                     |
-| `--type-body`      | 16px / 1.5                     | 400    | Nội dung và input                        |
-| `--type-label`     | 14px / 1.5                     | 500    | Label, nút, bảng desktop                 |
-| `--type-caption`   | 12px / 1.5                     | 400    | Thời điểm và chú thích phụ               |
-| `--type-amount`    | `clamp(24px, 3vw, 32px)` / 1.3 | 600    | Amount trong form Đổi token              |
+1. **Font chữ hiển thị và nội dung:** **Be Vietnam Pro**, fallback `system-ui, sans-serif` (weight 400, 500, 600, 700), đảm bảo hiển thị hoàn hảo dấu tiếng Việt.
+2. **Font kỹ thuật số & tài chính:** **JetBrains Mono**, fallback `ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace`. Bắt buộc dùng font Monospace cho:
+   - Ticker giá thị trường, giá khớp lệnh gần nhất
+   - Toàn bộ bảng Sổ lệnh (Orderbook: cột Giá, Số lượng, Tổng)
+   - Khối lượng giao dịch, số dư khả dụng, phần trăm trượt giá (+/- %)
+   - Địa chỉ ví (`0x...`), Object ID (`BalanceManager`, Pool), Transaction Digest
+   - Chỉ số nhịp đập hệ thống (Telemetry: Ping ms, Epoch, Gas price)
 
-Số tiền, giá và phần trăm dùng `font-variant-numeric: tabular-nums lining-nums`; cột số căn phải. Không ép địa chỉ dài vào font nhỏ hoặc để cắt dấu tiếng Việt. Nội dung đọc dài giới hạn khoảng 65 ký tự mỗi dòng. Trên mobile, input tối thiểu 16 px và bảng thẻ ưu tiên chữ 14-16 px.
+| Token              | Cỡ chữ / line-height           | Weight | Font Family    | Sử dụng                                  |
+| ------------------ | ------------------------------ | ------ | -------------- | ---------------------------------------- |
+| `--type-display`   | `clamp(32px, 4vw, 56px)` / 1.2 | 700    | Be Vietnam Pro | Tiêu đề landing; tối đa hai dòng desktop |
+| `--type-heading-1` | 32px / 1.3                     | 700    | Be Vietnam Pro | Tiêu đề trang                            |
+| `--type-heading-2` | 24px / 1.35                    | 600    | Be Vietnam Pro | Tiêu đề khu vực module                   |
+| `--type-heading-3` | 18px / 1.45                    | 600    | Be Vietnam Pro | Tiêu đề panel/dialog                     |
+| `--type-body`      | 16px / 1.5                     | 400    | Be Vietnam Pro | Nội dung và nhãn hướng dẫn               |
+| `--type-label`     | 14px / 1.5                     | 500    | Be Vietnam Pro | Label, nút bấm, header bảng              |
+| `--type-caption`   | 12px / 1.5                     | 400    | Be Vietnam Pro | Thời điểm và chú thích phụ               |
+| `--type-mono-lg`   | 24px / 1.3                     | 600    | JetBrains Mono | Giá lớn trên ticker header, input Amount |
+| `--type-mono-md`   | 14px / 1.4                     | 500    | JetBrains Mono | Sổ lệnh, số lượng, hàng giao dịch        |
+| `--type-mono-sm`   | 12px / 1.4                     | 400    | JetBrains Mono | Địa chỉ rút gọn, digest, telemetry ping  |
+
+Số tiền, giá và phần trăm dùng `font-variant-numeric: tabular-nums lining-nums`; cột số căn phải để các hàng thẳng tắp khi biến động. Không ép địa chỉ dài vào font nhỏ hoặc để cắt dấu tiếng Việt.
 
 ### 3.3. Khoảng cách, hình dạng và lớp hiển thị
+
+Định hình phong cách Module Terminal sắc sảo, tối ưu mật độ thông tin cao cho workstation giao dịch:
 
 | Nhóm token                               | Giá trị                         | Quy tắc                                       |
 | ---------------------------------------- | ------------------------------- | --------------------------------------------- |
 | `--space-1` đến `--space-8`              | 4, 8, 12, 16, 24, 32, 48, 64 px | Theo đúng thứ tự; không tạo khoảng cách tùy ý |
-| `--radius-control`                       | 8 px                            | Button, input, tab đang chọn                  |
-| `--radius-panel`                         | 16 px                           | Form chính, dialog và panel                   |
-| `--radius-badge`                         | 999 px                          | Chỉ badge nhãn ngắn                           |
+| `--radius-control`                       | 4 px                            | Button, input, tab đang chọn (sắc gọn)        |
+| `--radius-panel`                         | 8 px                            | Module giao dịch, bảng điều khiển (vững chãi) |
+| `--radius-badge`                         | 4 px                            | Thẻ tag/badge kỹ thuật số (không dùng tròn)   |
+| `--radius-dialog`                        | 10 px                           | Dialog, popover hộp nổi                       |
 | `--size-control`                         | 44 px                           | Chiều cao tối thiểu của control tương tác     |
-| `--size-header`                          | 64 px                           | Thanh điều hướng, không gồm banner Testnet    |
+| `--size-header`                          | 64 px                           | Thanh điều hướng, tích hợp telemetry bar      |
 | `--width-content`                        | 1200 px                         | Landing, Markets, Portfolio và hướng dẫn      |
-| `--width-trade`                          | 1440 px                         | Chế độ Nâng cao                               |
+| `--width-trade`                          | 1440 px                         | Bàn giao dịch Nâng cao (mở rộng tối đa)       |
 | `--width-swap`                           | 480 px                          | Form Đổi token                                |
 | `--z-base`, `--z-sticky`, `--z-popover`  | 0, 10, 20                       | Nội dung, header, menu                        |
 | `--z-overlay`, `--z-dialog`, `--z-toast` | 30, 40, 50                      | Overlay, dialog, thông báo                    |
 
-Panel padding 24 px desktop, 16 px mobile; khoảng cách label/input 8 px; giữa các field 16 px; giữa các nhóm form 24 px. Landing cách section 64 px desktop và 48 px mobile. Group dữ liệu bằng căn chỉnh và khoảng trắng; chỉ dùng panel khi có một nhiệm vụ riêng.
+Panel module dùng padding 16–20 px trên trade desk để tăng mật độ thông tin; giữa các field 12–16 px. Các module chính có thể áp dụng đường vát góc 45 độ siêu nhỏ (`chamfer: 4px`) tại góc viền để tôn thêm chất công nghệ.
 
-### 3.4. Chuyển động và icon
+### 3.4. Chuyển động, Icon và Hiệu ứng công nghệ (Tech Polish)
 
 | Token             | Giá trị                      | Sử dụng                     |
 | ----------------- | ---------------------------- | --------------------------- |
-| `--motion-fast`   | 120 ms                       | Hover, active               |
-| `--motion-normal` | 180 ms                       | Tab, menu                   |
+| `--motion-fast`   | 100 ms                       | Hover, active nút bấm       |
+| `--motion-normal` | 180 ms                       | Tab, menu, đóng mở module   |
+| `--motion-flash`  | 250 ms                       | Hiệu ứng tick-flash dữ liệu |
 | `--motion-dialog` | 220 ms                       | Mở/đóng dialog              |
 | `--motion-easing` | `cubic-bezier(0.2, 0, 0, 1)` | Chuyển trạng thái giao diện |
 
-Chỉ chuyển động nhẹ bằng opacity/transform; không animate amount, chiều rộng cột hay chiều cao hàng dữ liệu. Với `prefers-reduced-motion: reduce`, bỏ chuyển động và giữ phản hồi tức thời. Không dùng parallax, tự cuộn, marquee hoặc hiệu ứng lặp để thu hút chú ý trong ứng dụng.
+**Các hiệu ứng công nghệ cao đặc thù:**
 
-Khi triển khai icon, dùng một họ **Phosphor** dạng outline, cỡ 20 px trong control, 16 px cạnh nội dung phụ; weight thống nhất regular. Icon-only button vẫn có vùng chạm 44 px và tên truy cập được. Không dùng emoji làm icon chức năng. Tài liệu này không cài thư viện icon hoặc tạo asset.
+1. **Tick-Flash (Chớp màu dữ liệu):** Khi sổ lệnh hoặc giá thị trường khớp tick mới, hàng hoặc ô giá chớp sáng nhẹ `--color-tick-up` (xanh) hoặc `--color-tick-down` (đỏ) trong 250 ms rồi mượt mà trở lại trạng thái thường, giúp trader nhận biết ngay nhịp đập thị trường thời gian thực.
+2. **Live Telemetry Pulse (Đèn nhịp đập mạng):** Điểm tròn tín hiệu xanh (`--color-positive`) nhấp nháy chu kỳ 2s cạnh chỉ số ping ms trên Header, phản ánh trạng thái trực tuyến của RPC Sui Testnet.
+3. **Subtle Tech Grid (Lưới kỹ thuật số):** Nền landing page và hero section dùng họa tiết lưới vector mờ (`opacity: 0.03 - 0.05`, ô vuông 40px) kết hợp radial gradient sâu, tạo cảm giác không gian mạng Web3 tốc độ cao.
+
+Với `prefers-reduced-motion: reduce`, tắt toàn bộ tick-flash, pulse và chuyển động; dữ liệu chỉ đổi số tức thời.
+
+Khi triển khai icon, dùng một họ **Phosphor** dạng outline thanh mảnh, cỡ 20 px trong control, 16 px cạnh nội dung phụ; weight thống nhất regular hoặc light để giữ nét sắc cạnh công nghệ. Icon-only button vẫn có vùng chạm 44 px và tên truy cập được. Không dùng emoji làm icon chức năng.
 
 ## 4. Kiến trúc thông tin và điều hướng
 
@@ -111,7 +136,7 @@ Khi triển khai icon, dùng một họ **Phosphor** dạng outline, cỡ 20 px 
 | `/learn/testnet`   | Hướng dẫn Testnet | Bắt đầu dùng sản phẩm với token thử nghiệm |
 
 - Logo chữ WhaleDEX dẫn về `/`. Giữ wordmark chữ cho MVP; không coi dấu W của trang mẫu là logo đã chốt.
-- Header ứng dụng có Giao dịch, Thị trường, Tài sản, Hướng dẫn và Kết nối ví. Mục hiện tại có màu, nền và trạng thái truy cập được, không chỉ đổi màu chữ.
+- Header ứng dụng tích hợp **Terminal Telemetry Bar**: hiển thị các mục điều hướng (Giao dịch, Thị trường, Tài sản, Hướng dẫn), chỉ số trạng thái mạng Sui Testnet thời gian thực (`● 24ms Sui Testnet`, Gas price, Epoch hiện tại với đèn Live Pulse) và nút Kết nối ví viền laser. Mục hiện tại có màu sáng, nền active và chỉ báo laser gạch chân truy cập được.
 - “Mở ứng dụng” và mục Giao dịch dẫn đến pool mặc định hợp lệ trong cấu hình. Nếu chưa có pool hợp lệ/được hỗ trợ, dẫn đến Markets với hướng dẫn chọn cặp; không hard-code pool ID trong UI.
 - Vào `/trade/[poolKey]` mặc định mở Đổi token. Chuyển chế độ tại chỗ giữ cặp đã chọn; không tự chuyển input của Swap thành lệnh Limit.
 - Pool không tồn tại hoặc ngoài allowlist hiển thị “Thị trường này chưa được hỗ trợ” và đường về Markets; không âm thầm chuyển sang cặp khác.
@@ -124,26 +149,26 @@ Khi triển khai icon, dùng một họ **Phosphor** dạng outline, cỡ 20 px 
 
 Trình tự nội dung:
 
-1. **Giới thiệu:** tiêu đề “Giao dịch rõ ràng, dễ bắt đầu”, mô tả “Đổi token và đặt lệnh trên Sui Testnet. Bạn giữ quyền kiểm soát tài sản.” CTA chính “Mở ứng dụng”, CTA phụ “Hướng dẫn Testnet”.
-2. **Hai chế độ giao dịch:** trình bày Đổi token và Nâng cao với nhiệm vụ, thông tin người dùng nhận được và đường dẫn phù hợp. Dùng hai vùng có tỷ trọng khác nhau, không dàn thành các thẻ tính năng giống hệt nhau.
+1. **Giới thiệu (Cyber Hero):** tiêu đề “Giao dịch rõ ràng, dễ bắt đầu”, mô tả “Đổi token và đặt lệnh trên Sui Testnet. Bạn giữ quyền kiểm soát tài sản.” CTA chính “Mở ứng dụng” có viền micro-glow, CTA phụ “Hướng dẫn Testnet”.
+2. **Hai chế độ giao dịch:** trình bày Đổi token và Nâng cao với nhiệm vụ, thông tin người dùng nhận được và đường dẫn phù hợp. Dùng hai vùng module có tỷ trọng khác nhau, phân cách bằng viền laser 1px.
 3. **Bắt đầu trên Testnet:** các bước có tên hành động: Kết nối ví, Lấy token thử nghiệm, Xem trước và ký. Dẫn đến hướng dẫn đầy đủ; giải thích tài khoản giao dịch trong phần hướng dẫn nâng cao.
-4. **Câu hỏi thường gặp:** token thử nghiệm, quyền kiểm soát tài sản, khác biệt hai chế độ, tài khoản giao dịch và phí gas. Dùng accordion có thao tác bàn phím.
+4. **Câu hỏi thường gặp:** token thử nghiệm, quyền kiểm soát tài sản, khác biệt hai chế độ, tài khoản giao dịch và phí gas. Dùng accordion kỹ thuật số có thao tác bàn phím.
 5. **Kết thúc:** CTA “Mở ứng dụng” nhất quán với đầu trang; footer có hướng dẫn và thông tin môi trường.
 
-Hero desktop chia hai cột: nội dung căn trái, minh họa đại dương/cá voi tiết chế bên phải. Mobile xếp nội dung và CTA trước hình. Hình không chứa số liệu thị trường hoặc giả dạng ảnh chụp một chức năng đang hoạt động. Asset sẽ được tạo/chọn ở công việc triển khai UI; không cần asset để hoàn thành tài liệu này.
+Hero desktop chia hai cột: nội dung căn trái, minh họa cyber-ocean / telemetry radar tiết chế bên phải. Nền tích hợp subtle tech grid mờ (40px) và hiệu ứng tỏa sáng deep ocean ambient glow màu xanh điện quang (`rgba(0, 240, 255, 0.08)`). Mobile xếp nội dung và CTA trước hình. Hình không chứa số liệu thị trường hoặc giả dạng ảnh chụp một chức năng đang hoạt động. Asset sẽ được tạo/chọn ở công việc triển khai UI; không cần asset để hoàn thành tài liệu này.
 
-Toàn trang giữ nền tối; hình ảnh không làm giảm tương phản nội dung. Không thêm thống kê khối lượng, người dùng, lợi suất, logo đối tác, nhận xét hoặc chứng nhận khi chưa có bằng chứng. Trạng thái Testnet luôn rõ, kể cả trên trang giới thiệu.
+Toàn trang giữ nền tối obsidian; hiệu ứng ánh sáng không làm giảm tương phản nội dung. Không thêm thống kê khối lượng, người dùng, lợi suất, logo đối tác, nhận xét hoặc chứng nhận khi chưa có bằng chứng. Trạng thái Testnet luôn rõ, kể cả trên trang giới thiệu.
 
 ### 5.2. Thị trường
 
-- Tìm theo symbol hoặc tên token trong allowlist. Hàng hiển thị cặp, giá gần nhất và trạng thái cập nhật; không bắt buộc chỉ số 24 giờ khi nguồn chưa cung cấp.
+- Tìm theo symbol hoặc tên token trong allowlist. Hàng hiển thị cặp, giá gần nhất bằng font `JetBrains Mono` và trạng thái cập nhật; không bắt buộc chỉ số 24 giờ khi nguồn chưa cung cấp.
 - Chọn cặp dẫn đến URL chứa poolKey. Có nút/link mang tên cặp cho bàn phím, không chỉ gắn click lên cả hàng.
 - Không có kết quả tìm kiếm: “Không tìm thấy cặp phù hợp” và nút xóa tìm kiếm. Chưa có pool: “Chưa có thị trường được hỗ trợ”. Upstream lỗi: hiển thị lỗi và Thử lại.
 - Không dùng số 0 thay dữ liệu thiếu. Dữ liệu cũ vẫn có thể được xem với nhãn thời điểm; không cho gửi giao dịch khi stale.
 
 ### 5.3. Đổi token
 
-Form một cột, tối đa 480 px, thứ tự: chọn chế độ, cặp token, số lượng trả, đảo chiều, lượng nhận dự kiến, chi tiết giá/phí, trượt giá, nút “Xem lại giao dịch”.
+Form một cột, tối đa 480 px, dạng panel module viền laser sắc gọn, thứ tự: chọn chế độ, cặp token, số lượng trả, đảo chiều, lượng nhận dự kiến, chi tiết giá/phí, trượt giá, nút “Xem lại giao dịch”.
 
 - Chỉ hỗ trợ exact input và chiều base/quote của pool được hỗ trợ. Đảo chiều cần tạo preview mới; không tái sử dụng lượng nhận cũ làm báo giá mới.
 - Swap mặc định dùng coin trực tiếp trong ví và không yêu cầu `BalanceManager`. Chỉ chế độ Nâng cao với order mới dẫn người dùng qua bước tạo/tái sử dụng và nạp tài khoản giao dịch.
@@ -153,14 +178,14 @@ Form một cột, tối đa 480 px, thứ tự: chọn chế độ, cặp token,
 - Khi chưa kết nối, hành động chính là “Kết nối ví”. Sau khi kết nối và dữ liệu hợp lệ, dùng “Xem lại giao dịch”; hành động ký nằm ở màn hình review.
 - Trong lúc cập nhật báo giá, giữ nội dung nhập; khóa bước review cho đến khi có preview hợp lệ tương ứng với input hiện tại.
 
-### 5.4. Nâng cao
+### 5.4. Nâng cao (Trading Terminal Desk)
 
-Desktop bố trí vùng dữ liệu thị trường bên trái và form đặt lệnh bên phải; lệnh mở và lịch sử nằm phía dưới. Vùng dữ liệu có sổ lệnh và giao dịch gần nhất; không bắt buộc biểu đồ nến khi chưa có dữ liệu lịch sử phù hợp trong phạm vi MVP.
+Desktop bố trí dạng **Trading Terminal Modular Grid**: các module panel ghép nối liền khối bằng đường phân cách laser `1px solid var(--color-border)`, gồm vùng dữ liệu thị trường bên trái và form đặt lệnh bên phải; lệnh mở và lịch sử nằm phía dưới. Không bắt buộc biểu đồ nến khi chưa có dữ liệu lịch sử phù hợp trong phạm vi MVP.
 
-- Sổ lệnh có tối thiểu 10 mức mua và 10 mức bán khi nguồn đủ dữ liệu, với giá, số lượng và tổng tích lũy; phần giữa hiển thị giá mua tốt nhất, giá bán tốt nhất, mid-price và spread tuyệt đối/phần trăm.
-- Phía mua ghi “Mua” và màu positive, phía bán ghi “Bán” và màu negative. Thanh độ sâu chỉ làm nền phụ, không che số hoặc thay nhãn.
-- Giao dịch gần nhất hiển thị giá, lượng, phía taker và thời gian. Không đọc mọi tick qua live region của screen reader.
-- Form có Mua/Bán, loại lệnh Giới hạn (`LIMIT`) hoặc Chỉ maker (`POST_ONLY`), giá, số lượng, tổng dự kiến, tài sản sẽ bị khóa, phí và gas.
+- Sổ lệnh (Orderbook) dùng font `JetBrains Mono`, hiển thị tối thiểu 10 mức mua và 10 mức bán khi nguồn đủ dữ liệu, với giá, số lượng và tổng tích lũy; phần giữa hiển thị giá mua tốt nhất, giá bán tốt nhất, mid-price và spread tuyệt đối/phần trăm. Áp dụng hiệu ứng **Tick-Flash** chớp màu nhẹ (250 ms) khi nhận dữ liệu tick mới.
+- Phía mua ghi “Mua” và màu Cyber Emerald (`--color-positive`), phía bán ghi “Bán” và màu Cyber Crimson (`--color-negative`). Thanh độ sâu chỉ làm nền phụ mờ (độ mờ 12-15%), không che số hoặc thay nhãn.
+- Giao dịch gần nhất hiển thị giá (Mono font), lượng, phía taker và thời gian (HH:mm:ss). Không đọc mọi tick qua live region của screen reader.
+- Form có Mua/Bán, loại lệnh Giới hạn (`LIMIT`) hoặc Chỉ maker (`POST_ONLY`), giá, số lượng, tổng dự kiến, tài sản sẽ bị khóa, phí và gas. Các ô nhập giá và lượng dùng font Monospace lớn rõ nét.
 - Giải thích Chỉ maker: “Lệnh sẽ không được đặt nếu có thể khớp ngay.” Không dùng cụm này như cam kết lệnh chắc chắn được nhận.
 - Giá và lượng tuân theo tick size, lot size và minimum size của pool. Nếu cần làm tròn, hiển thị giá trị điều chỉnh và cho người dùng xem lại trước khi ký; không sửa âm thầm.
 - Chặn tự khớp theo cấu hình an toàn trong PRD; không đưa tùy chọn vô hiệu hóa bảo vệ này vào MVP.
@@ -168,7 +193,7 @@ Desktop bố trí vùng dữ liệu thị trường bên trái và form đặt l
 
 ### 5.5. Tài sản và tài khoản giao dịch
 
-Lần đầu giới thiệu: **“Tài khoản giao dịch (BalanceManager) giữ tài sản bạn dùng để đặt lệnh trên DeepBook. Bạn ký thao tác nạp và rút bằng ví.”** Sau đó dùng nhãn ngắn “Tài khoản giao dịch”, với object ID có thể sao chép.
+Lần đầu giới thiệu: **“Tài khoản giao dịch (BalanceManager) giữ tài sản bạn dùng để đặt lệnh trên DeepBook. Bạn ký thao tác nạp và rút bằng ví.”** Sau đó dùng nhãn ngắn “Tài khoản giao dịch”, với object ID hiển thị bằng font Monospace và có thể sao chép.
 
 | Nhãn          | Ý nghĩa trình bày                                                        |
 | ------------- | ------------------------------------------------------------------------ |
@@ -193,19 +218,20 @@ SUI dùng cho gas lấy từ faucet chính thức. DEEP và quote asset ưu tiê
 
 ## 6. Component dùng chung
 
-| Component      | Quy định                                                                                                                                                |
-| -------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Button         | Một hành động chính mỗi nhóm tác vụ; nhãn động từ cụ thể. Có default, hover, focus, active, disabled và loading; loading giữ kích thước và chặn gửi lặp |
-| Amount input   | Label phía trên, token/số dư gần field, lỗi phía dưới. Cho gõ trạng thái trung gian, validate trước review; không làm tròn mỗi lần gõ                   |
-| Token selector | Chỉ token/pool được hỗ trợ; tìm kiếm, symbol, tên và coin type đầy đủ khi mở chi tiết để phân biệt token trùng tên                                      |
-| Tabs           | Active có nền/đường chỉ báo và nhãn; hỗ trợ phím mũi tên, Home/End, focus. Đổi tab không làm mất form đang nhập                                         |
-| Table          | Header rõ đơn vị, số căn phải, hàng ổn định khi refresh. Trên mobile đổi sang thẻ hoặc tab thay vì thu nhỏ chữ                                          |
-| Dialog         | Có tiêu đề, mô tả, nút đóng và thứ tự nội dung ổn định; trap focus và trả focus về nút mở khi đóng                                                      |
-| Tooltip        | Chỉ bổ sung thuật ngữ; mở được bằng focus/chạm. Thông tin quan trọng phải hiện trực tiếp                                                                |
-| Toast          | Phản hồi ngắn như “Đã sao chép”; không là nơi duy nhất chứa lỗi giao dịch hoặc digest                                                                   |
-| Inline alert   | Lỗi/cảnh báo gắn với field, panel hoặc giao dịch; gồm nguyên nhân dễ hiểu và hành động xử lý                                                            |
-| Skeleton       | Chỉ dùng khi chưa có dữ liệu; kích thước gần bố cục thật. Refresh giữ dữ liệu cũ có nhãn thay vì làm cả bảng nhấp nháy                                  |
-| Empty state    | Phân biệt chưa kết nối, chưa có dữ liệu, không có kết quả và lỗi nguồn; mỗi loại có hành động phù hợp                                                   |
+| Component           | Quy định                                                                                                                                                                                        |
+| ------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Button              | Một hành động chính mỗi nhóm tác vụ; nhãn động từ cụ thể. Nút chính có viền laser sắc nét và micro-glow cyan nhẹ. Có default, hover, focus, active, disabled và loading; loading giữ kích thước |
+| Amount input        | Label phía trên, token/số dư gần field, lỗi phía dưới. Số tiền hiển thị bằng font `JetBrains Mono` cỡ lớn, căn phải. Cho gõ trạng thái trung gian, validate trước review                        |
+| Token selector      | Chỉ token/pool được hỗ trợ; tìm kiếm, symbol, tên và coin type rút gọn khi mở chi tiết để phân biệt token trùng tên                                                                             |
+| Tabs                | Active có đường viền laser/chỉ báo màu cyan và nhãn nổi bật; hỗ trợ phím mũi tên, Home/End, focus. Đổi tab không làm mất form đang nhập                                                         |
+| Table (Order/Trade) | Header rõ đơn vị, số căn phải dùng font Monospace tabular-nums. Hỗ trợ tick-flash khi cập nhật. Trên mobile đổi sang thẻ hoặc tab thay vì thu nhỏ chữ                                           |
+| Telemetry Badge     | Hiển thị chỉ số ping, block/epoch và trạng thái mạng với đèn live pulse nhấp nháy 2s, font `JetBrains Mono` cỡ 12px                                                                             |
+| Dialog              | Có tiêu đề, mô tả, nút đóng và thứ tự nội dung ổn định; viền sắc nét 10px radius, shadow tối sâu; trap focus và trả focus về nút mở khi đóng                                                    |
+| Tooltip             | Chỉ bổ sung thuật ngữ; mở được bằng focus/chạm. Thông tin quan trọng phải hiện trực tiếp                                                                                                        |
+| Toast               | Phản hồi ngắn như “Đã sao chép”; không là nơi duy nhất chứa lỗi giao dịch hoặc digest                                                                                                           |
+| Inline alert        | Lỗi/cảnh báo gắn với field, panel hoặc giao dịch; gồm nguyên nhân dễ hiểu và hành động xử lý; viền trái 3px màu semantic cảnh báo                                                               |
+| Skeleton            | Chỉ dùng khi chưa có dữ liệu; kích thước gần bố cục thật với hiệu ứng quét sáng công nghệ (shimmer nhẹ 1.5s). Refresh giữ dữ liệu cũ có nhãn thay vì làm cả bảng nhấp nháy                      |
+| Empty state         | Phân biệt chưa kết nối, chưa có dữ liệu, không có kết quả và lỗi nguồn; mỗi loại có hành động phù hợp                                                                                           |
 
 ## 7. Ngôn ngữ, số liệu và thời gian
 
@@ -287,7 +313,8 @@ Giữa các mốc, bố cục co giãn bằng Grid/Flex. Nếu header không đ�
 Các mục sau dùng khi triển khai giao diện, không phải tuyên bố đã kiểm thử một UI hiện có.
 
 - [ ] Route, nhãn và chế độ mặc định đúng tài liệu; CTA mở pool cấu hình hoặc Markets khi không có pool.
-- [ ] Token màu, font, spacing, radius và icon thống nhất; đo tương phản trên cả trạng thái hover/focus/disabled.
+- [ ] Token màu Cyber, hệ thống font kép (Be Vietnam Pro cho văn bản, JetBrains Mono cho số liệu/hash/sổ lệnh), spacing, radius (4–8px) và icon thống nhất; đo tương phản trên cả trạng thái hover/focus/disabled.
+- [ ] Hiệu ứng công nghệ (tick-flash, micro-glow, telemetry pulse) hiển thị mượt mà, tắt hoàn toàn khi bật `prefers-reduced-motion`.
 - [ ] Landing có nội dung tiếng Việt, CTA rõ và banner Testnet; không có số liệu hoặc bằng chứng xã hội giả.
 - [ ] Đổi token và Nâng cao thể hiện rõ nguồn tài sản, phí/gas, thời điểm dữ liệu và giới hạn giao dịch.
 - [ ] Kiểm thử chưa có ví, sai mạng, đổi account/pool trong review, thiếu gas/tài sản, sổ lệnh rỗng, stale và indexer trễ.
