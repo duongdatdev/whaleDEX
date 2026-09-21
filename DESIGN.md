@@ -216,9 +216,54 @@ Giải thích rõ: _"Tài khoản giao dịch (BalanceManager) giữ tài sản 
 
 ---
 
-## 7. Quy chuẩn dữ liệu & Localization
+## 7. Quy chuẩn Nội dung, Microcopy & Dữ liệu (Chống text rác / text vô nghĩa)
 
-- **Ngôn ngữ:** Giao diện tiếng Việt chuẩn mực; giữ nguyên các thuật ngữ kỹ thuật: _WhaleDEX, Sui, DeepBookV3, Testnet, Symbol, Coin Type, Object ID, Digest_.
+### 7.1. Tiêu chuẩn Microcopy & Chống văn bản rác (Zero-Fluff Policy)
+
+Mọi từ ngữ trên giao diện WhaleDEX phải phục vụ mục đích chức năng rõ ràng, tham khảo chuẩn mực từ các sàn giao dịch công nghệ hàng đầu (dYdX, Binance, Uniswap):
+
+1. **Danh sách đen (Tuyệt đối CẤM xuất hiện trên UI):**
+   - **Cấm Lorem Ipsum / Placeholder:** Không dùng bất kỳ chuỗi `Lorem ipsum`, văn bản giữ chỗ (`Nội dung ở đây...`, `Title text here`, `Chức năng đang phát triển`). Nếu dữ liệu chưa tải xong, dùng Skeleton loader; nếu không có dữ liệu, dùng Empty State có chỉ dẫn.
+   - **Cấm khẩu hiệu quảng cáo sáo rỗng (Marketing Buzzwords):** Cấm các cụm từ sáo rỗng như: _"Nền tảng giao dịch số 1"_, _"Công nghệ đột phá đỉnh cao tương lai"_, _"Giao dịch không rủi ro"_, _"Lợi nhuận khủng"_.
+   - **Cấm số liệu & Bằng chứng xã hội giả (No Fake Social Proof):** Không bịa đặt logo đối tác/nhà đầu tư, không tạo đánh giá (reviews) người dùng ảo, không hiển thị số liệu Volume / TVL / Người dùng giả tạo.
+
+2. **Quy chuẩn Nhãn nút bấm & CTA (Action-Driven Labels):**
+   - Nhãn nút bấm luôn là cụm **[Động từ] + [Đối tượng cụ thể]**, giúp người dùng hiểu ngay kết quả khi bấm:
+     - _Đúng:_ `Kết nối ví Sui`, `Xem lại giao dịch`, `Xác nhận và ký`, `Đổi token`, `Đặt lệnh Mua`, `Đặt lệnh Bán`, `Hủy lệnh #123`, `Nạp vào tài khoản`, `Rút về ví`.
+     - _Cấm:_ `Bấm vào đây`, `OK`, `Gửi`, `Tiếp tục` (khi thiếu ngữ cảnh), `Khám phá ngay`, `Tìm hiểu thêm` (trên bảng giao dịch).
+
+3. **Quy chuẩn Trạng thái rỗng (Actionable Empty States):**
+   - Không được để ô trống hoặc dùng câu chung chung như _"Không có gì ở đây"_, _"Trống"_.
+   - Luôn tuân theo công thức: **[Trạng thái hiện tại] + [Lý do ngắn gọn] + [Hành động tiếp theo]**:
+     - _Sổ lệnh chưa có thanh khoản:_ "Chưa có lệnh nào ở mức giá này. Đặt lệnh Maker đầu tiên ở form bên phải."
+     - _Chưa có lệnh mở:_ "Bạn chưa có lệnh mở nào cho cặp này. Đặt lệnh Mua hoặc Bán để bắt đầu."
+     - _Lịch sử giao dịch trống:_ "Chưa ghi nhận giao dịch nào từ ví kết nối trong phiên này."
+     - _Không tìm thấy token:_ "Không tìm thấy token phù hợp với từ khóa '{query}'. Hãy kiểm tra lại ký hiệu hoặc dán địa chỉ Coin Type."
+
+4. **Quy chuẩn Thông báo lỗi (Clear & Actionable Error Messages):**
+   - Không hiển thị mã lỗi kỹ thuật thuần túy (`Error 500`, `Unknown exception`, `Transaction failed`).
+   - Cấu trúc thông báo: **[Vấn đề xảy ra] + [Nguyên nhân dễ hiểu] + [Cách người dùng tự xử lý]**:
+     - _Thiếu gas:_ "Không đủ SUI để trả phí gas mạng (~0.02 SUI). Vui lòng nhận thêm SUI từ Faucet để tiếp tục."
+     - _Trượt giá quá cao:_ "Tác động giá dự kiến là 2,4% (vượt ngưỡng cảnh báo 1%). Hãy giảm số lượng hoặc điều chỉnh mức trượt giá trong cài đặt."
+     - _Từ chối ký ví:_ "Bạn đã hủy yêu cầu ký trong ví. Lệnh chưa được gửi đi."
+
+5. **Quy chuẩn Landing Page & Giới thiệu tính năng:**
+   - Mọi câu chữ chỉ mô tả chính xác năng lực thực tế của sản phẩm:
+     - _Tiêu đề chính (Headline):_ "Sàn giao dịch Spot phi tập trung trên Sui Testnet"
+     - _Phụ đề (Sub-headline):_ "Giao dịch không lưu ký qua sổ lệnh DeepBookV3. Toàn quyền kiểm soát tài sản, khớp lệnh on-chain tốc độ cao với phí gas tối thiểu."
+     - _FAQ:_ Chỉ giải đáp 4 vấn đề thiết thực: Cách nhận SUI Testnet từ Faucet, Bản chất `BalanceManager`, Cách tính phí mạng và Giá trị token thử nghiệm.
+
+6. **Quy chuẩn Tooltip giải thích tham số:**
+   - Giải thích ngắn gọn trong 1–2 câu súc tích:
+     - _Trượt giá (Slippage):_ "Mức chênh lệch giá tối đa bạn chấp nhận giữa giá xem trước và giá thực thi trên blockchain."
+     - _Chỉ Maker (Post-Only):_ "Lệnh đảm bảo đóng vai trò cung cấp thanh khoản; sẽ tự động hủy nếu có thể khớp ngay lập tức."
+     - _Tác động giá (Price Impact):_ "Mức độ biến động giá thị trường do quy mô lệnh của bạn gây ra trên sổ lệnh DeepBook."
+
+---
+
+### 7.2. Định dạng Dữ liệu & Localization
+
+- **Ngôn ngữ:** Giao diện tiếng Việt chuẩn mực; giữ nguyên các thuật ngữ kỹ thuật quốc tế: _WhaleDEX, Sui, DeepBookV3, Testnet, Symbol, Coin Type, Object ID, Digest_.
 - **Định dạng số:** Hiển thị theo quy chuẩn Việt Nam: `1.234,56 SUI`, `0,5%`.
 - **Nhập liệu (Input):** Chấp nhận cả dấu phẩy `,` và dấu chấm `.` làm dấu thập phân từ bàn phím crypto (ví dụ `1.23` tương đương `1,23`); không nhận dấu phân nhóm hàng nghìn trong ô nhập.
 - **Rút gọn địa chỉ:** Hiển thị dạng `0x1234…abcd` bằng font Monospace; hỗ trợ nút sao chép toàn bộ một chạm.
@@ -267,6 +312,7 @@ Mọi thao tác thay đổi trạng thái (Tạo tài khoản, Nạp, Rút, Đ�
 
 - [ ] Route, nhãn tiếng Việt và chế độ mặc định hiển thị chính xác theo tài liệu.
 - [ ] Áp dụng chuẩn bảng màu Cyber, hệ thống font kép (Be Vietnam Pro + JetBrains Mono) và bo góc 4–8px sắc nét.
+- [ ] Toàn bộ UI tuân thủ chính sách Zero-Fluff: không có text rác, placeholder, marketing sáo rỗng hay số liệu giả; mọi nút bấm, tooltip và empty state đều có hướng dẫn hành động cụ thể.
 - [ ] Hiệu ứng công nghệ (Tick-Flash, Live Telemetry Pulse, Micro-glow) mượt mà; tự động tắt khi bật `prefers-reduced-motion`.
 - [ ] Số dư ví và `BalanceManager` tách biệt rõ ràng; các thao tác nạp/rút SUI luôn trừ gas reserve an toàn.
 - [ ] Form Swap và Orderbook tuân thủ chặt chẽ quy tắc tick/lot size của DeepBookV3.
