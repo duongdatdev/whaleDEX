@@ -4,14 +4,26 @@
     "build": {
       "dependsOn": ["^build"],
       "inputs": ["$TURBO_DEFAULT$", ".env", ".env.*"],
-      "env": ["NODE_ENV", "NEXT_PUBLIC_API_URL"],
+      "env": [
+        "NODE_ENV",
+        "NEXT_PUBLIC_API_URL",
+        "NEXT_PUBLIC_DEFAULT_CHAIN_ID",
+        "DEFAULT_CHAIN_ID"
+      ],
       "outputs": ["dist/**", ".next/**", "!.next/cache/**"]
     },
     "dev": {
       "dependsOn": ["^build"],
       "cache": false,
       "persistent": true,
-      "env": ["NODE_ENV", "HOST", "PORT", "NEXT_PUBLIC_API_URL"]
+      "env": [
+        "NODE_ENV",
+        "HOST",
+        "PORT",
+        "NEXT_PUBLIC_API_URL",
+        "NEXT_PUBLIC_DEFAULT_CHAIN_ID",
+        "DEFAULT_CHAIN_ID"
+      ]
     },
     "lint": { "dependsOn": ["^build"] },
     "typecheck": { "dependsOn": ["^build"] },

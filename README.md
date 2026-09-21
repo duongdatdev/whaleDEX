@@ -111,6 +111,21 @@ The API loads `apps/api/.env` through dotenv; process environment variables take
 
 Actual environment files are excluded from Git; only `.env.example` files are tracked. Turbo declares environment variables and files that affect builds to avoid reusing cached output for a different configuration.
 
+## EVM network configuration
+
+The shared registry in `packages/shared/src/chains.ts` configures BSC (56), Ethereum (1),
+Base (8453), Polygon PoS (137), Arbitrum One (42161), and Ethereum Sepolia (11155111).
+Each entry includes its native gas currency, explorer and ordered public HTTPS RPC URLs.
+These are configuration entries, not proof of wallet or swap support. RPC fallback execution
+and live endpoint health checks will be added with the RPC client; public endpoints may be rate-limited.
+
+Sepolia is the default in every environment. Set `DEFAULT_CHAIN_ID` in the API and
+`NEXT_PUBLIC_DEFAULT_CHAIN_ID` in the web app to the same supported decimal chain ID to change it.
+Unsupported or empty values fail validation. The web value is configured before building.
+`GET /v1/chains` returns `{ defaultChainId, chains }` from the API configuration.
+The web app can import `chains` and `defaultChain` from `src/lib/chains.ts`.
+The portable registry contains public URLs only; do not add provider credentials there.
+
 ## Running a production build locally
 
 ```sh
@@ -143,4 +158,4 @@ API tests use Fastify injection without opening a real port. Web tests verify th
 
 ## Future development
 
-This foundation does not yet include Sui/DeepBook SDKs, wallet connections, swaps, order-book data, `BalanceManager`, indexing, authentication, a database, Docker, deployment, or CI. The approved direction is a non-custodial Sui Testnet MVP using DeepBookV3: direct-wallet swap first, followed by advanced `BalanceManager` and limit-order flows. See the project documentation above for scope and sequencing.
+The current roadmap targets five EVM mainnets and Ethereum Sepolia. The shared network registry and chain catalog API are implemented; wallet connections, RPC clients, routing, swaps, indexing, a database, Docker, deployment, and CI are not implemented yet. Follow [the development roadmap](docs/DOCS.md) for the current scope; the PRD, design and historical Sui ADR still need to be aligned with the EVM direction.
