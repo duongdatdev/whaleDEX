@@ -7,7 +7,14 @@ export type SuiNetworkName = z.infer<typeof suiNetworkNameSchema>;
 export const DEFAULT_SUI_NETWORK = 'testnet' satisfies SuiNetworkName;
 export const suiNetworkEnvSchema = suiNetworkNameSchema.default(DEFAULT_SUI_NETWORK);
 
-const httpsUrlSchema = z.url({ protocol: /^https$/ });
+export const suiGrpcUrlSchema = z.url({ protocol: /^https$/ });
+const httpsUrlSchema = suiGrpcUrlSchema;
+export const suiGrpcTimeoutEnvSchema = z
+  .string()
+  .regex(/^\d+$/)
+  .transform(Number)
+  .pipe(z.number().int().min(100).max(30000))
+  .default(10000);
 export const suiNetworkConfigSchema = z
   .object({
     network: suiNetworkNameSchema,
@@ -82,3 +89,35 @@ export const suiNetworksResponseSchema = z.object({
   networks: z.array(suiNetworkConfigSchema),
 });
 export type SuiNetworksResponse = z.infer<typeof suiNetworksResponseSchema>;
+
+export function resolveSuiConnection(input: {
+  network: SuiNetworkName;
+  grpcUrl?: string;
+  timeoutMs?: number;
+}) {
+  const network = getSuiNetwork(input.network);
+  return {
+    network: network.network,
+    grpcUrl: suiGrpcUrlSchema.parse(input.grpcUrl ?? network.grpcUrls[0]),
+    timeoutMs: z
+      .number()
+      .int()
+      .min(100)
+      .max(30000)
+      .parse(input.timeoutMs ?? 10000),
+  };
+}
+
+export const suiReadinessSchema = z.discriminatedUnion('status', [
+  z.object({
+    status: z.literal('ok'),
+    network: suiNetworkNameSchema,
+    checkpoint: z.string().regex(/^\d+$/),
+  }),
+  z.object({
+    status: z.literal('unavailable'),
+    network: suiNetworkNameSchema,
+    code: z.enum(['SUI_UNAVAILABLE', 'SUI_NETWORK_MISMATCH', 'SUI_INVALID_RESPONSE']),
+  }),
+]);
+export type SuiReadiness = z.infer<typeof suiReadinessSchema>;
