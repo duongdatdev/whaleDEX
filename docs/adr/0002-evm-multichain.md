@@ -1,11 +1,13 @@
 # ADR-0002: EVM đa mạng và engine routing Sepolia
 
-- **Trạng thái:** Accepted về phạm vi và hướng kiến trúc; provider/deployment cụ thể chưa chốt.
+- **Trạng thái:** Superseded — được thay thế bởi [ADR-0003](0003-sui-deepbook-mvp.md) ngày 2026-09-29.
 - **Ngày:** 2026-09-21.
 - **Thay thế:** [ADR-0001](0001-sui-deepbook.md).
 - **Nguồn quyết định:** người dùng yêu cầu BSC, Ethereum, Base, Polygon, Arbitrum và Ethereum Sepolia; cung cấp tài liệu tham khảo Web3 Wallet + DEX engine.
 
 ## Bối cảnh
+
+> Tài liệu lịch sử: quyết định dưới đây không còn là phạm vi triển khai hiện hành. Xem [ADR-0003](0003-sui-deepbook-mvp.md) cho quyết định Sui Testnet + DeepBookV3.
 
 WhaleDEX chuyển sang swap spot đa mạng EVM. Stack Next.js/Fastify/TypeScript và monorepo pnpm hiện tại được giữ. Registry 6 chain, env validation và GET /v1/chains đã có ở commit a13203e; các chức năng giao dịch chưa có.
 

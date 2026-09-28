@@ -1,246 +1,151 @@
-# WhaleDEX — Lộ trình DEX đa mạng EVM
+# WhaleDEX — Lộ trình Sui Testnet + DeepBookV3
 
-## 1. Định hướng và hiện trạng
+Tài liệu này quy định thứ tự triển khai cho [PRD 3.0](prd-whaledex.md) và [ADR-0003](adr/0003-sui-deepbook-mvp.md). Mục tiêu là spot DEX không lưu ký trên Sui Testnet, dùng DeepBookV3 làm liquidity và matching layer.
 
-WhaleDEX hướng tới DEX spot không lưu ký trên **5 mainnet: BNB Smart Chain (BSC), Ethereum, Base, Polygon PoS và Arbitrum One**, cùng **Ethereum Sepolia** để phát triển và kiểm thử. Tổng cộng có **6 mạng** trong cấu hình mục tiêu.
+## 1. Nguyên tắc
 
-Lộ trình tham khảo tài liệu người dùng cung cấp, “Web3 Wallet — Ví Web3 đa chain kèm DEX engine tự viết”: dùng chung hợp đồng quote, routing engine Uniswap V3 trên Sepolia, adapter aggregator trên mainnet, Transaction Center và quản lý quyền chi tiêu. Đây là kế hoạch, không phải mô tả tính năng đã hoàn thành.
+- Chỉ Sui Testnet trong MVP; không triển khai EVM/Sepolia song song.
+- Người dùng tự ký; API không giữ khóa và không có quyền rút tài sản.
+- DeepBook/Sui là nguồn sự thật; cache/database chỉ là dữ liệu dẫn xuất.
+- Dùng `@mysten/dapp-kit-react`, `@mysten/sui` và `@mysten/deepbook-v3` hiện hành.
+- Không tự xây matching engine hoặc publish Move package trong MVP.
+- Mỗi lát cắt phải có test, kiểm chứng và commit riêng trước lát cắt kế tiếp.
 
-**Quyết định hiện hành:** [PRD EVM 2.0](prd-whaledex.md), [ADR-0002](adr/0002-evm-multichain.md) và bộ [Chapter 3](chapter-3/README.md) thống nhất phạm vi này. [ADR-0001](adr/0001-sui-deepbook.md) chỉ là lịch sử đã bị thay thế. DESIGN ở root còn cần đồng bộ các màn hình đặc thù giao thức trước khi dùng cho EVM UI.
+## 2. Trạng thái hiện tại
 
-Codebase hiện có Next.js 16, React 19, Fastify 5, TypeScript strict, pnpm/Turborepo, Zod và bộ kiểm tra. Commit `a13203e` đã thêm registry immutable 6 chain, schema/env validation, API `GET /v1/chains` và web `chains`/`defaultChain`. API còn có `GET /health`; frontend vẫn là trang tĩnh. Chưa có wallet, RPC transport/fallback thực thi, token registry, routing, approval, swap, history, database/indexer, CI hoặc deployment. RPC metadata chưa chứng minh endpoint đang hoạt động.
+Đã có monorepo Next.js/Fastify/TypeScript, landing page, shared package, health API và test nền tảng. Code vẫn chứa registry EVM/Sepolia từ hướng kiến trúc cũ; wallet, Sui client, DeepBook integration và giao dịch chưa được triển khai.
 
-API dùng `DEFAULT_CHAIN_ID`, web dùng `NEXT_PUBLIC_DEFAULT_CHAIN_ID`, mặc định `11155111`; cần cấu hình đồng nhất khi deploy, web lấy giá trị trước build. Token/spender allowlist, capability và cờ bật giao dịch bên dưới vẫn là kế hoạch.
+Tài liệu Sui không biến registry hiện tại thành Sui implementation. Lát cắt đầu tiên phải thay schema/config bằng code và test tương ứng.
 
-## 2. Ma trận mạng mục tiêu
-
-| Mạng                  | Loại    | Chain ID   | Native gas token | Explorer               |
-| --------------------- | ------- | ---------- | ---------------- | ---------------------- |
-| BNB Smart Chain (BSC) | Mainnet | `56`       | BNB              | `bscscan.com`          |
-| Ethereum              | Mainnet | `1`        | ETH              | `etherscan.io`         |
-| Base                  | Mainnet | `8453`     | ETH              | `basescan.org`         |
-| Polygon PoS           | Mainnet | `137`      | POL              | `polygonscan.com`      |
-| Arbitrum One          | Mainnet | `42161`    | ETH              | `arbiscan.io`          |
-| Ethereum Sepolia      | Testnet | `11155111` | Sepolia ETH      | `sepolia.etherscan.io` |
-
-Nguồn đối chiếu registry: [BSC](https://github.com/ethereum-lists/chains/blob/master/_data/chains/eip155-56.json), [Ethereum](https://github.com/ethereum-lists/chains/blob/master/_data/chains/eip155-1.json), [Base](https://github.com/ethereum-lists/chains/blob/master/_data/chains/eip155-8453.json), [Arbitrum One](https://github.com/ethereum-lists/chains/blob/master/_data/chains/eip155-42161.json), [Sepolia](https://github.com/ethereum-lists/chains/blob/master/_data/chains/eip155-11155111.json) và [Polygon network details](https://docs.polygon.technology/pos/reference/rpc-endpoints).
-
-Quy tắc cấu hình:
-
-- “ARB” là mạng Arbitrum One; gas trả bằng ETH. Polygon là Polygon PoS, gas trả bằng POL.
-- Sepolia là Ethereum Sepolia, không phải Base Sepolia hoặc Arbitrum Sepolia.
-- Mỗi chain có RPC chính/dự phòng, explorer, native/wrapped token, token allowlist, router/spender allowlist và cờ bật đọc/giao dịch riêng.
-- Dev/staging mặc định Sepolia. Production có 5 mainnet; chế độ testnet được phân biệt rõ.
-- Swap thực hiện trong từng mạng. Bridge và swap xuyên mạng chưa thuộc phạm vi.
-- Thêm mạng vào selector chưa đủ để coi là hỗ trợ: phải có quote, allowance, simulation, receipt và bằng chứng kiểm thử.
-- Có thể rollout từng mainnet theo mức sẵn sàng; mục tiêu hoàn thành vẫn là đủ 5 mạng, bao gồm Base.
-
-## 3. Phạm vi phát hành
-
-### MVP-A — Swap trên Ethereum Sepolia
-
-- Kết nối ví ngoài, chọn mạng, đọc số dư native/ERC-20 và token allowlist.
-- Routing engine tự viết dựa trên Uniswap V3: tìm route, lấy quote, đánh giá output và dựng transaction.
-- Preview route, output dự kiến, minimum received, phí và gas ước tính.
-- Approve nếu cần, review, simulation, ký swap và theo dõi receipt.
-- Transaction Center lưu metadata và khôi phục giao dịch pending sau reload.
-- Permit là bước tối ưu sau khi approve/swap cơ bản ổn định.
-
-“Engine tự viết” là lớp tìm route, đánh giá quote và dựng calldata trên giao thức có sẵn; chưa bao gồm tự viết AMM, router contract hoặc matching engine.
-
-### MVP-B — Swap trên 5 mainnet
-
-- Dùng chung schema quote và UI cho BSC, Ethereum, Base, Polygon PoS, Arbitrum One.
-- Hướng tham khảo: aggregator adapter cho mainnet; LI.FI là ứng viên cần kiểm chứng theo chain/token và điều kiện API trước khi chốt.
-- Chỉ chấp nhận route cùng chain; từ chối response cross-chain.
-- Kiểm tra chain, target, spender, recipient, value và ràng buộc đầu ra trước khi ký calldata từ nguồn ngoài.
-- Price impact, USD valuation hoặc dữ liệu phí chưa biết phải hiển thị chưa có dữ liệu; không thay bằng số 0.
-- Lịch sử, quyền chi tiêu và revoke gắn với chain/account cụ thể.
-
-### Sau MVP
-
-Có thể mở rộng tài sản, gửi/nhận, NFT, command palette và ví in-app. Ví tự lưu khóa cần đặc tả, threat model, review bảo mật và kiểm thử vòng đời khóa riêng; MVP swap dùng ví ngoài.
-
-Chưa thuộc MVP: bridge, cross-chain swap, margin, perpetual, farming, token riêng, matching engine, limit order/CLOB riêng và quản lý vị thế LP. Không chuyển nguyên luồng BalanceManager của DeepBook sang EVM.
-
-## 4. Kiến trúc mục tiêu
+## 3. Kiến trúc mục tiêu
 
 ```text
-Ví EVM ngoài
-  ↕ kết nối, xác nhận và ký tại client
-Next.js Web
-  ├── Network selector + Wallet + Swap + Transaction Center
-  ├── Public RPC client: balance, allowance, simulation, receipt
-  └── Fastify API
-        ├── Chain/token registry + validation + cache
-        ├── Mainnet quote adapter → aggregator được chọn
-        ├── Sepolia quote adapter → routing engine → EVM RPC
-        └── History/allowance discovery → provider theo chain
-
-packages/shared: schema chain, token, quote, route, transaction và error
+Browser + Sui Wallet
+        │
+        ▼
+Next.js web ─────────────► Sui gRPC / DeepBookV3
+        │                         │
+        │ public derived reads    │ on-chain state/events
+        ▼                         ▼
+Fastify API/cache ◄──────── optional indexer
+        │
+        └── PostgreSQL only when history/chart requires persistence
 ```
 
-- Web quản lý wallet và transaction intent; API không nhận private key, ký hoặc gửi giao dịch thay người dùng.
-- Đánh giá wagmi, viem, wallet UI connector và query cache theo hướng mẫu; xác minh phiên bản tương thích stack hiện tại trước khi thêm dependency.
-- Provider wallet/query/transaction đặt ở layout ổn định để giao dịch không mất khi đổi tab/route.
-- Engine tách logic thuần khỏi React. API cung cấp quote và unsigned transaction request; client kiểm chứng trước khi yêu cầu ký.
-- RPC có timeout, fallback và kiểm tra `eth_chainId`; không tự gửi lại write transaction qua nhiều endpoint.
-- Cache và định danh token gắn chain + address; native token có kiểu riêng. Registry chứa deployment được xác minh, không hard-code trong component.
-- API key máy chủ lưu ở backend. Chỉ công khai identifier/key được provider thiết kế cho browser với giới hạn domain/quota phù hợp.
-- Giữ `apps/web`, `apps/api`, `packages/shared`, `packages/config`; chỉ thêm package hoặc indexer khi có nhu cầu thực tế.
+Ranh giới trách nhiệm:
 
-Cấu trúc mở rộng dự kiến:
+- **Web:** wallet, form state, intent review, signing, transaction tracking.
+- **Shared:** network/market schemas, amount types, error contracts; không chứa secret.
+- **API:** health/readiness, cache/index/history, request validation và observability.
+- **DeepBook/Sui:** custody rules, order state, matching, fills và settlement.
 
-```text
-apps/web/src/features/     # wallet, assets, swap, allowances, transactions
-apps/web/src/lib/          # chain config, public client, API client, format
-apps/api/src/modules/      # chains, tokens, quotes, history
-apps/api/src/adapters/     # RPC, aggregator, explorer/indexer
-apps/api/src/routing/      # path, pools, quoter, scoring, calldata
-packages/shared/src/      # schema portable và số học dùng chung
-```
+## 4. Lộ trình theo lát cắt
 
-## 5. Quote và engine Uniswap V3 trên Sepolia
+### Giai đoạn 0 — Đồng bộ quyết định và baseline
 
-Quote dự kiến gồm `quoteId`, `chainId`, account/recipient, tokenIn/tokenOut, amountIn, amountOut, minimumAmountOut, route, source, timestamp, expiresAt và input fingerprint. Approval request và transaction request có schema riêng.
+- [x] Ghi ADR-0003 và đồng bộ PRD, roadmap, README, Chapter 3.
+- [ ] Chạy đầy đủ baseline repository trước thay đổi code.
+- [ ] Chốt tiêu chí nghiệm thu cho market đầu tiên và các dependency DEP-01..DEP-05.
 
-- Amount trong JSON là chuỗi base units; phép tính dùng `bigint` hoặc decimal-safe.
-- Phân biệt approval spender và transaction target; không giả định hai địa chỉ luôn giống nhau.
-- Price impact, USD valuation và gas valuation có thể là `null`, kèm nguồn hoặc lý do thiếu dữ liệu.
-- Đổi chain/account/recipient/token/amount/slippage làm quote và permit cũ mất hiệu lực. TTL/debounce/refetch là cấu hình cần đo.
+Nghiệm thu: không còn tài liệu hiện hành mô tả EVM/Sepolia là phạm vi mục tiêu; tài liệu lịch sử được đánh dấu rõ.
 
-Backlog engine:
+### Giai đoạn 1 — Cấu hình Sui
 
-- [ ] Xác minh factory, quoter, router, wrapped native và Multicall deployment qua tài liệu giao thức và bytecode.
-- [ ] Xác minh test token, decimals và thanh khoản; không sao chép địa chỉ mẫu thành deployment mặc định.
-- [ ] Sinh route một/hai chặng qua connector allowlist; lọc trùng, vòng lặp và pool không tồn tại.
-- [ ] Xác minh fee tiers; giới hạn route count, batch size, concurrency và timeout.
-- [ ] Batch quote xử lý lỗi từng route, so sánh trên block context nhất quán.
-- [ ] Xếp hạng output ròng sau gas khi có tỷ giá native/tokenOut đáng tin cậy; công bố fallback khi thiếu tỷ giá.
-- [ ] Đọc pool state để tính giá tham chiếu, xử lý token ordering, decimals và multi-hop bằng số học chính xác.
-- [ ] Phân biệt phí LP và price impact bằng định nghĩa có test; không coi spot price của pool là giá thị trường độc lập.
-- [ ] Dựng exact-input calldata với minimum output, recipient, deadline và wrap/unwrap đúng ABI router.
-- [ ] Test native value, nhận native đầu ra và hoàn phần dư nếu router yêu cầu.
+- [ ] Thay chain ID số và EVM registry bằng network schema `testnet | mainnet` phù hợp Sui.
+- [ ] Đặt Testnet là network duy nhất được bật giao dịch.
+- [ ] Cấu hình gRPC endpoint/fallback và Sui Explorer.
+- [ ] Cập nhật env, API catalog, shared exports và toàn bộ test liên quan.
 
-Không cam kết 36 route, 3 vòng RPC, overhead 46.000 gas hoặc gas limit cộng 80.000 như bản mẫu. Phải đo và ước tính từ transaction thực tế theo chain/provider.
+Nghiệm thu: config sai/thiếu bị từ chối; API và web thống nhất network; không còn EVM registry trong runtime MVP.
 
-## 6. Approval, permit và simulation
+Commit dự kiến: `refactor(chains): replace EVM registry with Sui networks`
 
-Luồng nền: quote → allowance → approve nếu thiếu → chờ receipt → đọc lại allowance → làm mới quote → review → simulate → ký swap.
+### Giai đoạn 2 — Ví và public reads
 
-- Approve đúng spender đã xác minh, ưu tiên số lượng cần dùng. Token yêu cầu reset allowance về 0 có luồng riêng.
-- Permit là tối ưu tùy capability token/router/wallet, có fallback approve rõ ràng.
-- Kiểm tra domain, owner, spender, value, nonce và deadline; đọc lại nonce trước ký và hủy chữ ký khi intent thay đổi. Tham khảo [ERC-2612](https://eips.ethereum.org/EIPS/eip-2612).
-- Không mặc định mọi token hỗ trợ selfPermit hoặc chèn permit vào calldata aggregator chưa hiểu cấu trúc.
-- Không kết luận permit luôn thất bại chỉ vì account có bytecode: [EIP-7702](https://eips.ethereum.org/EIPS/eip-7702) cho phép EOA có delegation code. Cần test capability thực tế.
-- Simulation dùng đúng from/to/data/value sẽ gửi. Sau approval vẫn cần làm mới quote và simulate lại.
-- State override chỉ thử nghiệm khi RPC hỗ trợ và storage layout đã xác minh; không dò slot tùy ý cho mọi ERC-20 hoặc coi override là allowance thật.
-- Phân biệt simulation thành công, revert và chưa xác minh. Revert chặn ký; lỗi hạ tầng không được coi là thành công. Mặc định yêu cầu thử lại/đổi RPC trước ký nếu chưa xác minh được.
-- Không tự retry giao dịch ghi khi chưa biết lần gửi trước đã được chấp nhận hay chưa.
+- [ ] Thêm `@mysten/sui` và `@mysten/dapp-kit-react`.
+- [ ] Tạo `SuiGrpcClient`, provider và connect/disconnect flow.
+- [ ] Xử lý account/network change, rejected connection và missing wallet.
+- [ ] Đọc SUI gas balance và coin balances theo coin type/decimals.
 
-## 7. Transaction Center và quản lý quyền
+Nghiệm thu: kết nối ví Testnet, đổi account làm mới đúng dữ liệu và ứng dụng không nhận private key.
 
-Transaction Center quản lý approve, swap, revoke và send nếu triển khai, tồn tại ngoài từng màn hình nghiệp vụ.
+Commit dự kiến: `feat(wallet): add Sui wallet connection`
 
-- ID nội bộ ổn định; lưu chainId, account, nonce khi có và danh sách original/replacement hash.
-- Tra cứu bằng chain + hash; speed-up/cancel thay hash phải giữ liên kết với intent gốc.
-- Trạng thái: chờ ký, đã gửi, pending, confirmed, reverted, replaced/cancelled và unknown.
-- Pending quá TTL chuyển sang cần kiểm tra/unknown; không kết luận dropped chỉ theo thời gian.
-- Persist metadata để khôi phục watcher; không lưu permit signature hoặc secret trong log/history.
-- Refresh balance/allowance/history/quote đúng chain/account sau receipt và chính sách xác nhận của chain.
-- Confirmation/finality phải cấu hình riêng theo mạng; không dùng một số block cho mọi mainnet.
+### Giai đoạn 3 — DeepBook market data
 
-Allowance discovery kết hợp Approval logs và spender allowlist rồi đọc lại allowance on-chain. UI phải thể hiện giới hạn pagination, lịch sử quét và provider coverage. Revoke là `approve(spender, 0)`, chỉ báo thành công sau receipt. Kiểm chứng nguồn dữ liệu cho Base/BSC thay vì kế thừa bảng hỗ trợ trong bản mẫu.
+- [ ] Thêm `@mysten/deepbook-v3` và `SuiDeepBookAdapter`.
+- [ ] Xác minh deployment/pool/coin type từ SDK/config chính thức.
+- [ ] Đọc pool metadata, order book, best bid/ask và freshness.
+- [ ] Xây loading, empty, stale và error states; không dựng volume/price giả.
 
-## 8. Lộ trình triển khai
+Nghiệm thu: một market Testnet đã xác minh hiển thị dữ liệu có nguồn và lỗi tách biệt.
 
-### Giai đoạn 0 — Phạm vi, baseline và cấu hình
+Commit dự kiến: `feat(markets): integrate DeepBook spot market data`
 
-- [x] Đồng bộ tài liệu trong docs và ghi ADR-0002 thay thế quyết định cũ.
-- [ ] Đồng bộ phần thiết kế đặc thù giao thức trong DESIGN và liên kết tài liệu ở README root.
-- [ ] Chạy format, lint, typecheck, test, build và thiết lập CI theo lockfile hiện có.
-- [x] Thêm registry/schema 6 chain, default chain env validation và Turbo env inputs (`a13203e`).
-- [ ] Thêm runtime RPC health/fallback, token/deployment registry và capability/release flags.
-- [ ] Kiểm chứng wallet SDK, mainnet quote provider, deployment Sepolia và nguồn test token.
-- [ ] Lập bảng capability theo chain: RPC, quote, allowance, simulation, explorer/history và release status.
+### Giai đoạn 4 — Market order
 
-Nghiệm thu: cấu hình tách mainnet/testnet, baseline checks xanh, có nguồn dữ liệu thực tế và các quyết định còn mở được ghi rõ.
+- [ ] Form buy/sell với amount validation và gas reserve.
+- [ ] Quote/preflight, price limit, phí và review intent.
+- [ ] Ký qua ví, theo dõi digest và link Explorer.
+- [ ] Refresh balance/book/history sau confirmed result.
 
-### Giai đoạn 1 — Wallet và dữ liệu tài sản
+Nghiệm thu: connect → quote → review → sign → confirmed chạy end-to-end bằng token Testnet; rejected/failed/unknown không bị báo thành công.
 
-- [ ] Connect/disconnect, account/network change và từ chối chuyển mạng.
-- [ ] Native/ERC-20 balances, token selector và gas token đúng chain.
-- [ ] Đổi mạng vô hiệu quote/permit cũ; pending transaction tiếp tục được theo dõi ở chain gốc.
-- [ ] Dùng chuẩn typography/accessibility trong DESIGN còn phù hợp; đồng bộ các luồng EVM khi cập nhật thiết kế.
+Commit dự kiến: `feat(trade): support DeepBook market orders`
 
-Nghiệm thu: chọn đủ 6 mạng, dữ liệu không lẫn chain/account; chain chưa bật swap có thông báo rõ và không mở ví ký nhầm chain.
+### Giai đoạn 5 — Limit order và trading account
 
-### Giai đoạn 2 — Swap Sepolia bằng engine tự viết
+- [ ] Tích hợp BalanceManager/deposit/withdraw nếu luồng DeepBook yêu cầu.
+- [ ] Limit và post-only order với tick/lot validation.
+- [ ] Open orders, partial fills và cancel.
+- [ ] Tách rõ wallet balance, available, locked và settled balance.
 
-- [ ] Route generation, quote, scoring, calldata và test số học.
-- [ ] Approval, review, simulation và Transaction Center.
-- [ ] Swap native/ERC-20 trên cặp đã xác minh thanh khoản.
-- [ ] Test thiếu gas, stale quote, không có route, từ chối ký và revert.
+Nghiệm thu: người dùng tạo và hủy limit order; số dư/locked amount khớp on-chain state.
 
-Nghiệm thu: connect → quote → approve nếu cần → review → sign → receipt thành công, đối chiếu số dư. Không báo thành công chỉ vì có hash.
+Commit dự kiến: `feat(orders): add DeepBook limit order management`
 
-### Giai đoạn 3 — Tích hợp đủ 5 mainnet
+### Giai đoạn 6 — History, chart và API read model
 
-- [ ] Adapter quote chung cho BSC, Ethereum, Base, Polygon PoS và Arbitrum One.
-- [ ] Xác minh deployment/spender/token và calldata validation từng chain.
-- [ ] Test local fork cố định block cho mỗi mainnet; CI không gửi tài sản thật.
-- [ ] Lịch sử, allowance/revoke và lỗi upstream theo chain.
-- [ ] Bật giao dịch/kill switch theo chain, monitoring và smoke test phát hành trong phạm vi vận hành được duyệt.
+- [ ] Đánh giá direct reads/DeepBook indexer trước khi thêm database.
+- [ ] Thêm API có cursor cho fills/history nếu UI thực sự cần.
+- [ ] Thêm PostgreSQL chỉ cho read model dẫn xuất.
+- [ ] Xây candlestick/chart từ nguồn có freshness và provenance rõ.
 
-Nghiệm thu: cả 5 mainnet đạt checklist quote → approval → review/simulation → submission → receipt, có bằng chứng kiểm thử và release status riêng. Sepolia thành công không thay thế kiểm chứng từng mainnet.
+Nghiệm thu: indexer outage không làm mất khả năng rút/hủy qua protocol; dữ liệu stale được gắn nhãn.
 
-### Giai đoạn 4 — Permit và củng cố production
+Commit dự kiến: `feat(api): index DeepBook trading activity`
 
-- [ ] Permit trên token/router đủ capability; test nonce/domain/deadline và fallback approve.
-- [ ] Test replacement, cancel, reload, RPC outage, quote stale và receipt/reorg thay đổi.
-- [ ] Review CSP/security headers, calldata, dependencies, secrets và API limits.
-- [ ] Test mobile, keyboard, zoom 200%, reduced motion và lỗi từng widget/route.
-- [ ] Monitoring, runbook, rollback ứng dụng và xử lý sự cố giao dịch.
+### Giai đoạn 7 — Hardening và Testnet beta
 
-Nghiệm thu: không còn lỗi nghiêm trọng đã biết trong luồng tài sản; release checks xanh và tắt riêng được chain/provider lỗi.
+- [ ] Test rounding, decimals, tick/lot, stale quote và race condition.
+- [ ] Test rejected signature, insufficient balance/gas, RPC outage và reload recovery.
+- [ ] Kiểm tra keyboard, screen reader, mobile và reduced motion.
+- [ ] Thêm monitoring, redacted logs, dependency review và runbook Testnet.
 
-### Giai đoạn 5 — Mở rộng
+Nghiệm thu: toàn bộ release gate trong PRD đạt và không còn lỗi nghiêm trọng đã biết trong luồng tài sản.
 
-Gửi/nhận, portfolio nâng cao, NFT hoặc ví in-app triển khai theo đặc tả riêng. Engine tự viết có thể mở rộng sang mainnet sau khi đánh giá chất lượng route/chi phí; aggregator vẫn là adapter độc lập với UI.
+Commit dự kiến: `test(trade): cover Sui spot trading flows`
 
-## 9. API và dữ liệu dự kiến
+## 5. API dự kiến
 
-| Endpoint                                          | Mục đích                                         |
-| ------------------------------------------------- | ------------------------------------------------ |
-| `GET /health`                                     | Liveness hiện có                                 |
-| `GET /ready`                                      | Dependency readiness theo môi trường             |
-| `GET /v1/chains`                                  | 6 chain và capability/release status             |
-| `GET /v1/tokens?chainId=...`                      | Token allowlist và metadata                      |
-| `POST /v1/quotes/swap`                            | Same-chain quote và unsigned transaction request |
-| `GET /v1/transactions/:hash?chainId=...`          | Transaction status nếu UI cần API proxy          |
-| `GET /v1/wallets/:address/history?chainId=...`    | Lịch sử có cursor và nguồn dữ liệu               |
-| `GET /v1/wallets/:address/allowances?chainId=...` | Discovery best-effort và mức độ đầy đủ           |
+Chỉ thêm endpoint khi có consumer thực tế:
 
-`GET /health` và `GET /v1/chains` đã triển khai; endpoint chains hiện trả `defaultChainId` và metadata, chưa có capability/release status. Các endpoint khác là dự kiến. Chỉ triển khai thêm endpoint có UI sử dụng. Schema chain đã có; schema address, amount, recipient, slippage và request limits còn cần triển khai. API không nhận private key hoặc tự ký. Error dự kiến có mã ổn định, thông báo tiếng Việt hữu ích và request ID; không trả stack trace/secret. Chưa thêm database/indexer riêng khi provider hiện có vẫn đáp ứng.
+| Endpoint                           | Mục đích                               |
+| ---------------------------------- | -------------------------------------- |
+| `GET /health`                      | Liveness hiện có                       |
+| `GET /ready`                       | Trạng thái dependency bắt buộc         |
+| `GET /v1/networks`                 | Sui network metadata và release status |
+| `GET /v1/markets`                  | Allowlisted DeepBook markets           |
+| `GET /v1/markets/:id/book`         | Cached public order-book read nếu cần  |
+| `GET /v1/wallets/:address/history` | Derived history có cursor nếu cần      |
 
-## 10. Kiểm thử và release gate
+API không nhận private key, không ký hoặc tự submit transaction thay người dùng. Transaction builders ưu tiên chạy ở client bằng SDK chính thức; mọi server-built payload phải được client kiểm tra đầy đủ trước khi ký.
 
-| Lớp              | Kịch bản ưu tiên                                                                   |
-| ---------------- | ---------------------------------------------------------------------------------- |
-| Unit             | Base units, decimals, path encoding, rounding, slippage, gas conversion, freshness |
-| Routing          | Token ordering, route lỗi từng phần, output ròng, thiếu tỷ giá, calldata           |
-| Wallet/UI        | Account/chain change, quote race, review, từ chối ký                               |
-| Transaction      | Approval, permit nonce/domain, receipt revert, replacement, cancel, reload         |
-| API              | Schema, chain allowlist, timeout, cache isolation, rate limit                      |
-| Fork integration | Deployment, spender, quote, simulation trên từng mainnet                           |
-| E2E              | Wallet → quote → approve → swap → receipt trên production build                    |
+## 6. Test và release workflow
 
-CI dùng fixture/mock và local chain/fork được cấu hình; public RPC phục vụ smoke test riêng. E2E cần fixture quote/simulation và một luồng swap hoàn chỉnh, không chỉ navigation. Mock không chứng minh thanh khoản/deployment thực tế.
-
-Giữ các lệnh repository:
+Ưu tiên test phạm vi hẹp trước, sau đó chạy:
 
 ```sh
-pnpm install --frozen-lockfile
 pnpm format:check
 pnpm lint
 pnpm typecheck
@@ -248,17 +153,13 @@ pnpm test
 pnpm build
 ```
 
-Chỉ thêm script E2E/fork khi có cấu hình tương ứng. Không đổi sang npm ci hoặc hạ framework theo bản mẫu.
+- Unit: amount, decimals, tick/lot, schema và state transitions.
+- Integration: Sui client/DeepBook adapter với fixture và Testnet smoke test tách khỏi CI ổn định.
+- UI: wallet states, order review, async races và accessibility.
+- E2E: connect → order → digest → confirmed → refreshed state trên production build.
 
-Definition of Done: acceptance criteria đạt, loading/empty/stale/error đầy đủ, UI được kiểm chứng nếu liên quan, test theo rủi ro đạt, tài liệu/config đồng bộ và có commit nguyên tử. Phần chưa kiểm chứng không được đánh dấu đã hỗ trợ.
+Public Testnet/RPC không phải dependency bắt buộc của unit CI. Mock test không chứng minh deployment hoặc thanh khoản thực tế.
 
-## 11. Việc bắt đầu ngay và lưu ý từ bản mẫu
+## 7. Sau MVP
 
-1. Hoàn thiện baseline/CI và đồng bộ DESIGN cùng các liên kết README root với bộ tài liệu EVM trong docs.
-2. Chọn wallet SDK, mainnet quote source và provider theo capability thực tế, có Base.
-3. Xác minh deployment/token/liquidity Sepolia, chốt engine V3 một/hai chặng.
-4. Dùng registry đã có để xây RPC transport, wallet connection và network selector.
-5. Hoàn thành swap Sepolia có receipt, rồi kiểm chứng/rollout đủ 5 mainnet.
-6. Thêm permit và tính năng ví mở rộng sau khi approve/swap ổn định.
-
-Bản mẫu là đầu vào thiết kế, không phải bằng chứng WhaleDEX có 119 test, engine hoàn chỉnh hay số liệu gas đã đo. Địa chỉ, faucet, gas, provider coverage và hạn mức miễn phí phải kiểm tra lại khi triển khai. Tham khảo [LI.FI API overview](https://docs.li.fi/api-reference/introduction) khi đánh giá adapter; không mặc định API luôn miễn phí hoặc có đủ route trên mọi chain.
+Sui Mainnet chỉ được cân nhắc sau Testnet beta và cần ADR/PRD riêng. EVM/multi-chain không bị cấm vĩnh viễn, nhưng chỉ được mở lại khi có nhu cầu sản phẩm, protocol cụ thể, threat model và nguồn lực vận hành; không giữ code EVM chưa dùng trong MVP chỉ để “phòng tương lai”.

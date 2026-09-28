@@ -1,467 +1,145 @@
-# Chapter 3 — AI in Requirement Analysis & Product Management
+# Chapter 3 — AI-Assisted Requirements for WhaleDEX
 
-This chapter uses WhaleDEX as one continuous case study. It shows how AI can speed up synthesis, drafting, consistency checks, and test generation while keeping product decisions with accountable humans.
+This chapter uses WhaleDEX as a continuous case study for evidence-led product requirements. AI may accelerate repository inspection, synthesis, drafting and consistency checks, but accountable humans retain product, security and release decisions.
 
-## Learning outcomes
+## Canonical context
 
-After completing this chapter, a learner can:
+- Product source of truth: [WhaleDEX PRD 3.0](../prd-whaledex.md)
+- Architecture decision: [ADR-0003](../adr/0003-sui-deepbook-mvp.md)
+- Delivery order: [Sui/DeepBook roadmap](../DOCS.md)
+- Learning summary: [Sui Spot MVP PRD](whaledex-mvp-prd.md)
+- Hands-on exercise: [Practical Lab 3](practical-lab.md)
+- Evidence tracking: [Traceability matrix](traceability-matrix.md)
 
-1. separate repository evidence, stakeholder input, assumptions, and AI-generated suggestions;
-2. turn discovery evidence into an explicit product hypothesis;
-3. write a concise PRD with measurable outcomes and bounded scope;
-4. analyse requirements for ambiguity, conflicts, dependencies, and risk;
-5. write user stories and verifiable acceptance criteria;
-6. produce a feature specification that engineering, design, and QA can use;
-7. maintain traceability from product goals to tests.
+The settled MVP target is **Sui Testnet + DeepBookV3**. The product is a non-custodial spot DEX interface with market/limit orders. EVM/Sepolia, multi-chain, mainnet assets and a custom matching engine are outside this MVP.
 
-## Case-study baseline
+## Evidence discipline
 
-The repository currently provides a runnable monorepo foundation:
+Use this authority order when describing implementation:
 
-- a static Next.js frontend;
-- a Fastify API with `GET /health` and `GET /v1/chains`;
-- an immutable six-chain registry, chain schemas, default-chain environment validation and tests (commit `a13203e`);
-- shared Zod schemas and TypeScript types;
-- environment validation, linting, formatting, tests, and builds;
-- a development roadmap in [`docs/DOCS.md`](../DOCS.md).
+1. Running behavior and tests.
+2. Source code, schema and configuration.
+3. Accepted ADR and canonical PRD.
+4. Roadmap and learning documents.
+5. Assumptions, mockups and AI suggestions.
 
-It does **not** yet implement a wallet connection, blockchain integration, token list, quote, approval, swap, transaction history, smart contracts, database, indexer, CI, or deployment. Any example below that mentions those capabilities is a requirement or prototype scenario, not a statement of completed functionality.
+The repository currently has application foundations and a legacy EVM registry, but no Sui wallet or DeepBook integration. Documentation establishes intent; it does not convert planned features into implemented capabilities.
 
-The network scope is settled: BSC (56), Ethereum (1), Base (8453), Polygon PoS (137), Arbitrum One (42161), and Ethereum Sepolia (11155111). Sepolia is the current default. MVP-A builds a Uniswap V3 routing engine on Sepolia; MVP-B uses a common quote adapter on all five mainnets. See [ADR-0002](../adr/0002-evm-multichain.md) and the [canonical PRD](../prd-whaledex.md). Deployments, tokens/liquidity, SDK/provider versions and per-chain confirmation policy still need verification. Registry metadata is not a wallet, live RPC client or trading integration.
+Classify claims explicitly:
 
-## Responsible AI workflow
+| Class      | Meaning                        | WhaleDEX example                    |
+| ---------- | ------------------------------ | ----------------------------------- |
+| Fact       | Direct repository evidence     | Fastify health route exists         |
+| Decision   | Approved scope or architecture | MVP uses Sui Testnet and DeepBookV3 |
+| Hypothesis | Needs user/product validation  | Testnet traders need a Pro Terminal |
+| Dependency | Needs technical verification   | Target DeepBook pool and coin types |
+| Proposal   | Not approved or implemented    | Sui Mainnet launch                  |
 
-Use AI as an analysis assistant, not as a source of stakeholder truth.
+## Product framing
 
-```text
-Evidence -> structured context -> AI draft -> human challenge -> validation -> approved baseline
-                                  |             |
-                                  +-- gaps -----+-- decision owner
-```
+Problem hypothesis:
 
-For every AI-assisted output:
+> Testnet spot traders need a transparent way to inspect market context, balances, execution limits and transaction outcomes because on-chain order flows are easy to misread.
 
-1. provide only the minimum necessary context and remove secrets, private keys, personal data, and confidential commercial terms;
-2. label facts, stakeholder statements, assumptions, constraints, and suggestions separately;
-3. ask for missing information and contradictions, not just a polished answer;
-4. verify technical claims against the selected protocol and chain documentation;
-5. require a named human owner to approve scope, risk, and release decisions;
-6. retain the prompt, model/version where required by the organization, source references, reviewer, and date;
-7. re-run traceability and consistency checks when an approved requirement changes.
+Primary outcomes:
 
-A useful prompt contract is:
+- complete a market order with a confirmed digest;
+- create and cancel a limit order;
+- understand wallet/trading balances, price source, fees and transaction states;
+- preserve self-custody and avoid secret handling by WhaleDEX.
 
-```text
-Role: You are assisting a product analyst.
-Context: <approved evidence only>
-Task: <one bounded analysis task>
-Constraints: Do not invent stakeholder facts or technical capabilities.
-Output: Separate Evidence, Assumptions, Questions, Risks, and Recommendations.
-Quality check: Cite each conclusion to an input item and flag unsupported claims.
-```
+Non-goals include EVM networks, bridges, leverage, arbitrary coin import, custom matching, fiat and in-app seed custody.
 
-## 3.1 Product Discovery
+## AI-assisted discovery workflow
 
-Product discovery reduces uncertainty before delivery. AI is most useful for clustering interview notes, extracting themes, drafting hypotheses, generating interview probes, and spotting inconsistent signals. It cannot replace interviews, usage data, protocol verification, or stakeholder decisions.
+### 1. Inspect
 
-### Discovery inputs
+Search narrowly for code, schemas, tests and configuration related to the feature. Ask AI to report implemented/proposed/absent/legacy separately and cite file paths.
 
-| Input                            | Current WhaleDEX status                                               | Confidence                            |
-| -------------------------------- | --------------------------------------------------------------------- | ------------------------------------- |
-| Repository inspection            | Foundation and six-chain configuration exist; trading features do not | High                                  |
-| Development roadmap              | Sepolia engine first; five mainnet adapters follow                    | High                                  |
-| Target users                     | Learners/testnet evaluators are a working assumption                  | Low                                   |
-| User pain points                 | Complexity and uncertainty in a swap flow are hypotheses              | Low                                   |
-| Chain and execution direction    | Six networks selected; Sepolia V3 engine and mainnet adapter planned  | High for scope; deployment unverified |
-| Liquidity and token availability | Not verified                                                          | Unknown                               |
+### 2. Synthesize
 
-### Opportunity statement
+Cluster stakeholder notes while retaining source IDs. Separate observed statements from interpretations and generate counter-hypotheses. Never present fictional workshop observations as real research.
 
-> People evaluating a DEX on testnet need a transparent way to understand and complete a token swap because wallet, network, approval, pricing, and transaction states are fragmented and easy to misinterpret.
+### 3. Specify
 
-This is a hypothesis. Validate it with target-user interviews and an observed usability test before treating it as a product fact.
+Turn approved outcomes into atomic, testable requirements. Avoid “fast”, “safe”, “best” or “real-time” unless the comparison set, boundary and measurement are defined.
 
-### Proto-persona and jobs to be done
+For trading requirements, include:
 
-**Proto-persona:** Minh, a technically curious Web3 learner, has a browser wallet and testnet funds but limited knowledge of approvals, slippage, and transaction finality.
+- network, account and market identity;
+- coin type, decimals and amount representation;
+- side, order type, price, tick/lot constraints;
+- freshness and invalidation behavior;
+- signature, submission and confirmation states;
+- error/recovery behavior and verification method.
 
-**Functional job:** When exchanging one supported test token for another, Minh wants to understand the expected result and safely complete the transaction.
+### 4. Red-team
 
-**Emotional job:** Minh wants confidence that the app is connected to the intended network and is not requesting an unexpected permission.
+Ask AI to find ambiguity, missing negative paths, hidden custody, stale-data races, unsafe retry behavior, unsupported SDK assumptions and untestable claims. Reviewers decide which findings require changes.
 
-**Social job:** Minh wants a transaction reference that can be shared with a mentor or tester.
+### 5. Trace
 
-The persona is provisional. Do not add demographic detail that has no bearing on product behaviour.
+Map goals → requirements → acceptance evidence → component → implementation status. Planned tests are not implementation evidence. Update the matrix in the same change that implements or changes a requirement.
 
-### Hypotheses and discovery tests
+## Core requirement themes
 
-| ID   | Hypothesis                                                                  | Cheapest useful test                   | Success signal                                           |
-| ---- | --------------------------------------------------------------------------- | -------------------------------------- | -------------------------------------------------------- |
-| H-01 | New testnet users cannot distinguish approval from swap                     | Five moderated prototype sessions      | At least 4/5 explain both steps without coaching         |
-| H-02 | Showing minimum received and quote expiry improves confidence               | Compare two clickable prototypes       | At least 80% choose the safer quote correctly            |
-| H-03 | A guided single execution route is enough despite multiple candidate routes | Stakeholder review plus ten interviews | No validated need for split execution in MVP-A           |
-| H-04 | Transaction status must survive refresh                                     | Task-based usability test              | At least 4/5 recover a pending transaction after refresh |
+### Network and wallet
 
-These thresholds are learning criteria, not statistically significant market validation.
+MVP accepts Sui Testnet only. Wallet account/network changes invalidate account-derived state. The API never accepts seed phrases, private keys or signing secrets.
 
-### Interview guide
+### Market identity
 
-Ask about real behaviour before presenting a solution:
+Markets are identified by verified network, package/object/pool identifiers and full coin types. Symbols are display labels and cannot establish identity.
 
-1. Tell me about the last time you swapped tokens on a testnet.
-2. What information did you check before signing?
-3. Where did you hesitate or leave the flow?
-4. How did you know which network and token contract you were using?
-5. What did “approval” mean to you at that moment?
-6. How did you decide the transaction succeeded?
-7. Show me how you found the transaction again after closing the page.
+### Order data
 
-Avoid leading questions such as “Would minimum received make you feel safer?” Observe the task first, then probe the reason behind behaviour.
+Order-book reads expose freshness. Missing, empty, stale and failed states remain distinct. The UI never substitutes invented price, volume, gas or liquidity data.
 
-### Discovery exit criteria
+### Order execution
 
-Discovery is sufficient to baseline an MVP when:
+Market orders require a current preflight and reviewed price limit. Limit orders require tick/lot validation. Every transaction remains tied to the network, account, market and input context used to build it.
 
-- the target user and problem are supported by evidence;
-- a chain/protocol feasibility spike confirms a usable testnet deployment and liquidity;
-- P0 outcomes and exclusions are agreed;
-- assumptions, risks, and unresolved decisions have owners;
-- at least one prototype test has challenged the critical swap flow.
-
-## 3.2 Product Requirement Document (PRD)
-
-A PRD explains why a product increment should exist, whom it serves, what outcomes matter, and what is in scope. It should not silently decide every implementation detail.
-
-The case-study PRD is in [`whaledex-mvp-prd.md`](whaledex-mvp-prd.md). Its structure is:
-
-1. document control and decision status;
-2. evidence, problem, and target user;
-3. goals, success metrics, and non-goals;
-4. scope and end-to-end journey;
-5. functional and non-functional requirements;
-6. dependencies, risks, assumptions, and open questions;
-7. rollout and definition of done.
-
-### AI review checklist for a PRD
-
-Ask AI to identify, without rewriting the PRD automatically:
-
-- goals without metrics;
-- features without a user problem;
-- vague terms such as “fast”, “secure”, “easy”, or “real time”;
-- hidden implementation decisions;
-- conflicting requirements or non-goals;
-- missing failure, loading, empty, and recovery states;
-- requirements that cannot be tested;
-- assumptions presented as facts;
-- asset-safety or privacy risks without controls;
-- IDs that do not appear in the traceability matrix.
-
-The product owner accepts or rejects each suggested change. AI does not approve the baseline.
-
-## 3.3 Requirement Analysis
-
-Requirement analysis transforms product intent into a coherent, feasible, and testable system baseline.
-
-### Requirement classes
-
-| Class          | Question                                  | WhaleDEX example                                                                 |
-| -------------- | ----------------------------------------- | -------------------------------------------------------------------------------- |
-| Business       | Why invest?                               | Demonstrate a safe end-to-end testnet swap                                       |
-| User           | What outcome does the user need?          | Know the network, price boundary, and transaction result                         |
-| Functional     | What must the system do?                  | Refresh quote when amount or token changes                                       |
-| Non-functional | How well or under what constraint?        | Keyboard-operable token selector                                                 |
-| Data           | What is stored and how is it represented? | Token amounts use integer strings at API boundaries                              |
-| Interface      | What crosses a system boundary?           | Quote response includes chain, tokens, expiry, and minimum output                |
-| Transition     | How do states change?                     | `awaiting_signature -> submitted/pending -> confirmed/reverted/replaced/unknown` |
-| Constraint     | What is deliberately limited?             | Per-chain token allowlists; Sepolia first, five mainnets next                    |
-
-### Quality test
-
-Each requirement should be:
-
-- necessary and linked to a goal;
-- atomic enough to reason about;
-- unambiguous about actor, trigger, behaviour, and result;
-- feasible within known platform constraints;
-- verifiable by inspection, test, demonstration, or measurement;
-- uniquely identified and version controlled;
-- traceable to a source and downstream acceptance test.
-
-### Ambiguity example
-
-Weak requirement:
-
-> The app should quickly show the best swap price and safely process it.
-
-Problems: “quickly”, “best”, and “safely” are undefined; quote source, comparison set, freshness, failure behaviour, and execution boundary are missing.
-
-Analysed requirements:
-
-- `FR-QUOTE-01`: When input token, output token, chain, account, or amount changes, the client requests a new quote after the configured debounce interval.
-- `FR-QUOTE-02`: Display expected/minimum output, route, applicable fees, freshness and expiry; optional metrics remain unavailable when not supplied.
-- `FR-QUOTE-03`: The confirmation action is unavailable after quote expiry or when its bound context differs from the current context.
-- `NFR-PERF-01`: The product team must define and validate a quote-response percentile target against the selected provider before release; “fast” is not an accepted target.
-
-### Conflict and dependency analysis
-
-| Tension                                  | Analysis                                                 | Required decision                                 |
-| ---------------------------------------- | -------------------------------------------------------- | ------------------------------------------------- |
-| Frictionless swap vs explicit approval   | Removing explanation may increase asset-permission risk  | UX owner approves two-step presentation           |
-| Fresh quote vs provider cost/rate limit  | Aggressive refresh can overload an RPC/quote provider    | Set debounce, caching, and request budget         |
-| Unlimited approval vs least privilege    | Convenience increases exposure if spender is compromised | Use required-amount approval and disclose spender |
-| Immediate success vs blockchain finality | A hash is not confirmation                               | Define confirmation policy by chain               |
-| Rich history vs no indexer/database      | Client-only history is incomplete across devices         | Bound MVP history or fund an indexer              |
-
-### Swap state model
-
-```text
-idle
-  -> invalid_input
-  -> quoting -> quote_ready -> quote_expired
-                            -> approval_required
-approval_required -> awaiting_approval_signature -> approval_pending
-approval_pending  -> quote_refresh_required -> quote_ready
-quote_ready       -> awaiting_swap_signature -> submitted
-submitted         -> pending -> confirmed | reverted | replaced/cancelled | unknown
-any async state   -> context_changed -> revalidate
-```
-
-Changing account, chain, recipient, token, amount or slippage invalidates quote/permit actions. Pending transactions remain tracked on their original chain/account with stable intent IDs and replacement hash lineage. Timeout is unknown, not proof of dropped or failed execution.
-
-### Assumption and decision log
-
-| ID        | Type              | Statement                                                              | Gate                                   |
-| --------- | ----------------- | ---------------------------------------------------------------------- | -------------------------------------- |
-| D-SCOPE   | Settled           | Six EVM networks and Sepolia default; ADR-0002                         | Recorded                               |
-| D-ENGINE  | Settled direction | V3 routing on Sepolia; shared mainnet quote adapter                    | Deployments/providers still unverified |
-| A-02      | Hypothesis        | Exact-input same-chain swaps meet the initial user need                | Discovery validation                   |
-| DEP-01    | Open              | RPC/fallback and per-chain confirmation policy                         | RPC client/release                     |
-| DEP-02    | Open              | Mainnet provider coverage including Base                               | Mainnet adapter                        |
-| DEP-03/04 | Open              | Contracts, tokens and Sepolia liquidity/funding                        | Routing/smoke test                     |
-| DEP-05    | Open              | Slippage/deadline/gas policy; required-amount approval is the baseline | Review UI                              |
-| DEP-06/07 | Open              | Wallet compatibility, history coverage and privacy                     | Wallet/history release                 |
-
-Use dependency definitions from the canonical PRD. An open provider decision is not permission to change the agreed networks.
-
-## 3.4 User Stories & Acceptance Criteria
-
-User stories are planning tools, not complete specifications. Apply INVEST: independent where practical, negotiable, valuable, estimable, small, and testable. Acceptance criteria define observable boundaries.
-
-### Story US-WALLET-01 — Connect a wallet
-
-> As a testnet user, I want to connect a supported browser wallet so that WhaleDEX can show account-specific balances and prepare transactions for my approval.
-
-Acceptance criteria:
-
-```gherkin
-Scenario: Connect on a supported network
-  Given a supported wallet is available
-  And the wallet is on a supported chain
-  When the user approves the connection request
-  Then the interface shows the shortened account address
-  And account-scoped balances are refreshed
-
-Scenario: Reject connection
-  Given a supported wallet is available
-  When the user rejects the connection request
-  Then no connected state is shown
-  And a recoverable message explains that the request was rejected
-
-Scenario: Change account
-  Given a wallet is connected
-  When the wallet reports a different active account
-  Then prior account balances, allowance, quote, and pending form context are invalidated
-  And data is loaded for the new account
-```
-
-### Story US-QUOTE-01 — Review a bounded quote
-
-> As a user, I want to see the expected output, minimum received, route, fees, gas estimate, and expiry so that I can make an informed decision before signing.
-
-Acceptance criteria:
-
-```gherkin
-Scenario: Display a current quote
-  Given different supported input and output tokens are selected
-  And the input amount is positive and does not exceed the available balance
-  When a quote is returned for the current chain, tokens, account, and amount
-  Then expected output and minimum received are displayed
-  And route, fees, gas estimate, source freshness, and expiry are displayed when supplied
-
-Scenario: Ignore a stale response
-  Given quote request A is in progress
-  When the user changes the input and quote request B starts
-  And response A arrives after response B
-  Then response A does not replace quote B
-
-Scenario: Quote expires
-  Given a quote is displayed
-  When its expiry time passes
-  Then transaction confirmation is disabled
-  And the user can request or receive a refreshed quote
-```
-
-### Story US-APPROVAL-01 — Approve the intended spender
-
-> As a token holder, I want to understand and approve only the intended spender and amount so that I retain informed control of token permissions.
-
-Acceptance criteria:
-
-```gherkin
-Scenario: Approval is required
-  Given the selected input is an ERC-20 token
-  And allowance for the verified spender is below the required amount
-  When a current quote is ready
-  Then approval and swap are presented as separate steps
-  And the spender and requested allowance policy are disclosed before signature
-
-Scenario: Approval succeeds
-  Given an approval transaction was submitted
-  When its required confirmation policy is met
-  Then allowance is read again from the current chain and account
-  And a fresh quote is required before swap confirmation
-```
-
-### Story US-SWAP-01 — Execute and track a swap
-
-> As a user, I want to sign a validated swap and track it to a final outcome so that I know whether my assets changed.
-
-Acceptance criteria:
-
-```gherkin
-Scenario: Submit a valid swap
-  Given the wallet, chain, account, quote, allowance, balance, deadline, and spender are valid
-  And transaction simulation succeeds
-  When the user signs and the wallet submits the transaction
-  Then the interface records the transaction hash with chain and account
-  And the state is shown as submitted, not confirmed
-
-Scenario: Confirm a swap
-  Given a submitted transaction is being tracked
-  When a successful receipt reaches the configured confirmation policy
-  Then the state is shown as confirmed
-  And relevant balances, allowance, and activity data are refreshed
-
-Scenario: Transaction fails or is replaced
-  Given a submitted transaction is being tracked
-  When the transaction reverts or is replaced
-  Then the interface shows the distinct revert or replacement state
-  And a replacement transaction is tracked until its own receipt is known
-  And it does not report success solely because a transaction hash exists
-```
-
-### Negative and accessibility criteria
-
-- Zero, negative, malformed, over-precision, same-token, and above-balance input is rejected before quote submission.
-- Unsupported chain, unavailable wallet, RPC failure, insufficient native gas token, rejected signature, stale quote, and simulation failure have distinct recoverable messages.
-- Token identity includes a shortened address, not symbol alone.
-- Status is conveyed by text in addition to colour.
-- Every control is keyboard operable; focus is placed and restored correctly for dialogs.
-- Dynamic errors and transaction-state changes are announced through an appropriate live region.
-
-## 3.5 Feature Specification
-
-This section specifies MVP-A: an exact-input Ethereum Sepolia swap using the planned V3 routing engine. The schema also supports MVP-B same-chain mainnet adapters. FR/NFR and story IDs are shared with the canonical PRD; this is not a competing specification.
-
-### Feature boundary
-
-**In scope:** supported-token selection, amount entry, quote display, slippage within an approved range, allowance check, approval when required, preflight validation/simulation, wallet submission, receipt tracking, refresh recovery, and explorer link.
-
-**Out of this learning slice:** real mainnet transactions, cross-chain, exact-output, split execution, limit orders, fiat, arbitrary tokens and guaranteed cross-device history. Five mainnets remain in product MVP-B; lab execution uses fixtures/local environments or Sepolia.
-
-### Preconditions
-
-- ADR-0002 fixes network scope; deployments, RPC capability and confirmation policy are independently verified before execution.
-- Contract bytecode and ABI are verified for the selected chain.
-- Supported tokens have verified address and decimals.
-- A testnet feasibility transaction proves quote, approval, swap, and receipt behaviour.
-
-### Data contract sketch
-
-All asset quantities are decimal strings representing integer smallest units.
-
-```ts
-type QuoteRequest = {
-  chainId: number;
-  account: `0x${string}`;
-  recipient: `0x${string}`;
-  tokenIn: `0x${string}` | 'native';
-  tokenOut: `0x${string}` | 'native';
-  amountIn: string;
-  slippageBps: number;
-};
-
-type QuoteResponse = {
-  quoteId: string;
-  inputFingerprint: string;
-  account: `0x${string}`;
-  recipient: `0x${string}`;
-  source: 'sepolia-v3' | 'mainnet-adapter';
-  chainId: number;
-  tokenIn: string;
-  tokenOut: string;
-  amountIn: string;
-  expectedAmountOut: string;
-  minimumAmountOut: string;
-  approvalSpender: `0x${string}` | null; // null when approval is unnecessary
-  transactionTarget: `0x${string}`;
-  transactionValue: string;
-  route: Array<{ pool: string; tokenIn: string; tokenOut: string }>;
-  estimatedGas: string | null;
-  priceImpactPct: string | null;
-  sourceBlock?: string;
-  createdAt: string;
-  expiresAt: string;
-};
-```
-
-This sketch is not implemented. Final field names must be reconciled with shared schemas; mainnet and Sepolia adapters use the same public contract. If an external service returns calldata, the client/server adapter must verify chain, target, value, spender, tokens, amount, deadline, and output bound against the approved deployment before offering it for signature.
-
-### Interaction rules
-
-1. Parse display input with the selected token decimals; never calculate asset amounts with JavaScript floating point.
-2. Debounce quote requests and assign a context/version key. Ignore responses whose key is not current.
-3. Invalidate quote and allowance-derived actions when chain, account, token, amount, slippage, route, or relevant deployment changes.
-4. Disable signing after quote expiry.
-5. Present approval separately and read allowance again after confirmation.
-6. Refresh the quote after approval because price, route, block, or deadline may have changed.
-7. Simulate and estimate gas against current context before requesting a swap signature.
-8. Treat wallet signature, broadcast, inclusion, confirmation, failure, and replacement as distinct states.
-9. Persist an internal intent ID, chain/account, nonce when known, original/replacement hashes, submission time and state; do not persist permit signatures.
-10. Never request or store a seed phrase or private key.
-
-### Observability and analytics
-
-Product events must avoid wallet secrets and unnecessary full-address collection. Suggested events:
-
-| Event                | Required properties                                                  |
-| -------------------- | -------------------------------------------------------------------- |
-| `quote_requested`    | chain, token pair identifier, request context ID                     |
-| `quote_succeeded`    | provider, latency bucket, route count, source freshness              |
-| `quote_failed`       | stable error code, provider, latency bucket                          |
-| `approval_submitted` | chain, token identifier, spender identifier, policy                  |
-| `swap_submitted`     | chain, quote ID, transaction hash or privacy-safe correlation policy |
-| `swap_finalized`     | chain, outcome, confirmation duration bucket                         |
-
-Retention, consent, address pseudonymisation, and analytics-provider choices require privacy review before instrumentation.
-
-### Release gates
-
-- All P0 acceptance criteria pass on a deterministic local/fork environment where possible.
-- A smoke test passes against verified Ethereum Sepolia deployments; MVP-B also needs independent evidence for each mainnet.
-- No known critical/high asset-safety issue remains open.
-- Unsupported-network, stale-quote, rejection, revert, replacement, and RPC-outage paths are demonstrated.
-- Product, engineering, QA, security, and operations owners approve the evidence relevant to their area.
-- Documentation and the [traceability matrix](traceability-matrix.md) match the released behaviour.
-
-## Chapter review questions
-
-1. Which statements in the case study are evidence, and which are assumptions?
-2. Why is a transaction hash insufficient to claim swap success?
-3. Which context changes must invalidate a quote?
-4. What information should a user see before approving an ERC-20 spender?
-5. Where can AI accelerate analysis, and where is human approval mandatory?
-6. Why do Sepolia engine tests not prove Base or the other mainnet adapters are ready?
-
-Continue with [Practical Lab 3](practical-lab.md), then use the [traceability matrix](traceability-matrix.md) to audit the result.
+### Transaction lifecycle
+
+Awaiting signature, rejected, submitted, confirmed, failed and unknown are separate states. A digest is evidence of submission, not success. Unknown outcomes are investigated; writes are not blindly retried.
+
+### Derived data
+
+History, charts and portfolio aggregation may use an indexer/database, but DeepBook/Sui remains authoritative for balances, orders, fills and settlement. Indexer failure must not create backend custody or block protocol-level recovery.
+
+## Responsible AI and security
+
+- Do not paste secrets, seed phrases, private keys, production credentials or personal data into prompts.
+- Treat AI-generated addresses, package IDs, pool IDs and API behavior as untrusted until checked against official sources and runtime evidence.
+- Do not ask AI to claim legal, financial or security guarantees.
+- Record meaningful prompts, inputs, reviewer changes and rejected suggestions for auditability.
+- Require human review for asset-flow changes and independent security review before any mainnet decision.
+
+## Current decisions and open dependencies
+
+| Item                                  | Status              |
+| ------------------------------------- | ------------------- |
+| Sui Testnet + DeepBookV3              | Settled by ADR-0003 |
+| Non-custodial client signing          | Settled             |
+| No custom Move trading package in MVP | Settled             |
+| gRPC/GraphQL for new reads            | Settled direction   |
+| RPC provider/fallback                 | Open, DEP-01        |
+| First verified market and coin types  | Open, DEP-02        |
+| Faucet onboarding                     | Open, DEP-03        |
+| Wallet compatibility set              | Open, DEP-04        |
+| Price-limit/gas/freshness policy      | Open, DEP-05        |
+| History/chart source                  | Open, DEP-06        |
+
+## Review checklist
+
+- Does every implementation claim cite code/test evidence?
+- Are historical EVM documents clearly marked superseded?
+- Are Sui Testnet and token non-value visible in user-facing requirements?
+- Does every asset-changing action require the user wallet signature?
+- Are full identifiers used instead of symbols for trust decisions?
+- Are stale/unknown states explicit?
+- Are integer math, decimals, tick and lot boundaries testable?
+- Does the traceability matrix match current PRD IDs?
+- Are mainnet and multi-chain claims excluded unless separately approved?
+
+The companion [practical lab](practical-lab.md) applies this workflow to a market-order review slice. The [traceability matrix](traceability-matrix.md) starts with planned evidence and must evolve with the code.
