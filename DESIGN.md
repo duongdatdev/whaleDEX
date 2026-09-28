@@ -11,7 +11,7 @@ WhaleDEX là sàn giao dịch phi tập trung (Spot DEX) không lưu ký trên *
   - Hai chế độ chính: **Đổi token (Swap)** và **Bàn giao dịch Nâng cao (Pro Trading Terminal)**.
   - Quản lý tài sản ví và tài khoản giao dịch on-chain (`BalanceManager`).
   - Không hỗ trợ luồng EVM, AMM LP token hay yield farming trong phạm vi MVP.
-- **Tài liệu tham chiếu:** [PRD WhaleDEX](docs/prd-whaledex.md) • [Lộ trình triển khai](docs/DOCS.md) • [ADR-0001 DeepBookV3](docs/adr/0001-sui-deepbook.md).
+- **Tài liệu tham chiếu:** [PRD WhaleDEX](docs/prd-whaledex.md) • [Lộ trình triển khai](docs/DOCS.md) • [ADR-0003 Sui + DeepBookV3](docs/adr/0003-sui-deepbook-mvp.md).
 
 ---
 

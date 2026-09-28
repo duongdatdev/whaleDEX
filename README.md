@@ -31,12 +31,14 @@ Applications may depend on packages but must not import each other's code. `shar
 
 ## Project documentation
 
-| Document                                     | Purpose                                                                              |
-| -------------------------------------------- | ------------------------------------------------------------------------------------ |
-| [Product requirements](docs/prd-whaledex.md) | Approved Testnet MVP scope, user stories, requirements, and success metrics          |
-| [Development roadmap](docs/DOCS.md)          | Delivery order from the current foundation through MVP-A, MVP-B, and beta            |
-| [UI/UX design](DESIGN.md)                    | Target information architecture, interaction rules, visual system, and accessibility |
-| [ADR-0001](docs/adr/0001-sui-deepbook.md)    | Decision to use Sui Testnet and DeepBookV3 for the MVP                               |
+| Document                                      | Purpose                                                                              |
+| --------------------------------------------- | ------------------------------------------------------------------------------------ |
+| [Product requirements](docs/prd-whaledex.md)  | Approved Testnet MVP scope, user stories, requirements, and success metrics          |
+| [Development roadmap](docs/DOCS.md)           | Delivery order from Sui configuration through DeepBook trading and Testnet beta      |
+| [UI/UX design](DESIGN.md)                     | Target information architecture, interaction rules, visual system, and accessibility |
+| [ADR-0003](docs/adr/0003-sui-deepbook-mvp.md) | Current decision: Sui Testnet and DeepBookV3 for the spot DEX MVP                    |
+| [ADR-0001](docs/adr/0001-sui-deepbook.md)     | Historical first Sui decision, superseded by ADR-0002                                |
+| [ADR-0002](docs/adr/0002-evm-multichain.md)   | Historical EVM decision, superseded by ADR-0003                                      |
 
 The PRD is the product source of truth, code and schemas describe implemented behavior, the roadmap controls delivery order, and ADRs record accepted architecture decisions. Planned behavior is not considered implemented until it exists in code and passes the relevant release checks.
 
@@ -111,20 +113,20 @@ The API loads `apps/api/.env` through dotenv; process environment variables take
 
 Actual environment files are excluded from Git; only `.env.example` files are tracked. Turbo declares environment variables and files that affect builds to avoid reusing cached output for a different configuration.
 
-## EVM network configuration
+## Blockchain direction and current configuration
 
-The shared registry in `packages/shared/src/chains.ts` configures BSC (56), Ethereum (1),
-Base (8453), Polygon PoS (137), Arbitrum One (42161), and Ethereum Sepolia (11155111).
-Each entry includes its native gas currency, explorer and ordered public HTTPS RPC URLs.
-These are configuration entries, not proof of wallet or swap support. RPC fallback execution
-and live endpoint health checks will be added with the RPC client; public endpoints may be rate-limited.
+The approved MVP target is **Sui Testnet + DeepBookV3**. Wallet signing will use
+`@mysten/dapp-kit-react`; chain access will use `@mysten/sui` with a gRPC client; spot market
+integration will use `@mysten/deepbook-v3`. Sui/DeepBook remains the source of truth for assets,
+orders, fills, and settlement. The API may later cache or index public data but must not receive
+private keys or sign transactions for users.
 
-Sepolia is the default in every environment. Set `DEFAULT_CHAIN_ID` in the API and
-`NEXT_PUBLIC_DEFAULT_CHAIN_ID` in the web app to the same supported decimal chain ID to change it.
-Unsupported or empty values fail validation. The web value is configured before building.
-`GET /v1/chains` returns `{ defaultChainId, chains }` from the API configuration.
-The web app can import `chains` and `defaultChain` from `src/lib/chains.ts`.
-The portable registry contains public URLs only; do not add provider credentials there.
+The current source still contains the previous EVM/Sepolia registry in
+`packages/shared/src/chains.ts`, its environment variables, and `GET /v1/chains`. This is legacy
+implementation evidence, not the target architecture. The first implementation slice in the
+[roadmap](docs/DOCS.md) replaces it with Sui network configuration and updates the related tests.
+Until that change lands, the repository does not have a working Sui client, wallet connection, or
+DeepBook trading flow.
 
 ## Running a production build locally
 
@@ -158,4 +160,9 @@ API tests use Fastify injection without opening a real port. Web tests verify th
 
 ## Future development
 
-The current roadmap targets five EVM mainnets and Ethereum Sepolia. The shared network registry and chain catalog API are implemented; wallet connections, RPC clients, routing, swaps, indexing, a database, Docker, deployment, and CI are not implemented yet. Follow [the development roadmap](docs/DOCS.md) for the current scope; the PRD, design and historical Sui ADR still need to be aligned with the EVM direction.
+The roadmap targets a non-custodial spot DEX on Sui Testnet: replace the legacy EVM registry,
+connect a Sui wallet, integrate DeepBook market data, then deliver market orders, limit orders,
+history, and Testnet hardening. Sui Mainnet and EVM/multi-chain require separate future decisions.
+Wallet connection, Sui RPC/gRPC clients, DeepBook trading, indexing, a database, Docker,
+deployment, and CI are not implemented yet. Follow [the development roadmap](docs/DOCS.md) for
+the accepted delivery order.
