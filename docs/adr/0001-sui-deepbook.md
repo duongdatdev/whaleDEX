@@ -6,7 +6,7 @@
 
 ## Bối cảnh
 
-> Tài liệu lịch sử: các quyết định bên dưới không còn áp dụng cho triển khai hiện tại. Phạm vi hiện hành là 5 EVM mainnet và Ethereum Sepolia theo ADR-0002. Giữ nội dung cũ để truy vết quyết định.
+> Tài liệu lịch sử: ADR-0001 từng bị ADR-0002 thay thế. Phạm vi hiện hành được quyết định lại trong [ADR-0003](0003-sui-deepbook-mvp.md); giữ nội dung ADR-0001 để truy vết lịch sử.
 
 WhaleDEX cần một lớp thanh khoản spot dạng central limit order book (CLOB), hỗ trợ swap đơn giản và trải nghiệm giao dịch nâng cao mà không giữ private key của người dùng. Codebase hiện tại là monorepo TypeScript với Next.js và Fastify, chưa có blockchain integration.
 
