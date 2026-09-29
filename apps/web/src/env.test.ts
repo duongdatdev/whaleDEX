@@ -6,18 +6,18 @@ describe('web environment', () => {
     expect(parseWebEnv({}).NEXT_PUBLIC_API_URL).toBe('http://localhost:3001');
   });
 
-  it('defaults to Sepolia and supports an explicit mainnet', () => {
-    expect(parseWebEnv({}).NEXT_PUBLIC_DEFAULT_CHAIN_ID).toBe(11155111);
-    expect(parseWebEnv({ NEXT_PUBLIC_DEFAULT_CHAIN_ID: '56' }).NEXT_PUBLIC_DEFAULT_CHAIN_ID).toBe(
-      56,
-    );
+  it('defaults to Sui Testnet and supports an explicit Mainnet read context', () => {
+    expect(parseWebEnv({}).NEXT_PUBLIC_DEFAULT_SUI_NETWORK).toBe('testnet');
+    expect(
+      parseWebEnv({ NEXT_PUBLIC_DEFAULT_SUI_NETWORK: 'mainnet' }).NEXT_PUBLIC_DEFAULT_SUI_NETWORK,
+    ).toBe('mainnet');
   });
 
-  it.each(['', '10', 'secret-value'])(
-    'rejects invalid default chain %j without exposing values',
-    (NEXT_PUBLIC_DEFAULT_CHAIN_ID) => {
-      expect(() => parseWebEnv({ NEXT_PUBLIC_DEFAULT_CHAIN_ID })).toThrow(
-        'Invalid environment variables: NEXT_PUBLIC_DEFAULT_CHAIN_ID',
+  it.each(['', 'sepolia', '11155111', 'secret-value'])(
+    'rejects invalid default Sui network %j without exposing values',
+    (NEXT_PUBLIC_DEFAULT_SUI_NETWORK) => {
+      expect(() => parseWebEnv({ NEXT_PUBLIC_DEFAULT_SUI_NETWORK })).toThrow(
+        'Invalid environment variables: NEXT_PUBLIC_DEFAULT_SUI_NETWORK',
       );
     },
   );

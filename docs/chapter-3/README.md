@@ -23,7 +23,7 @@ Use this authority order when describing implementation:
 4. Roadmap and learning documents.
 5. Assumptions, mockups and AI suggestions.
 
-The repository currently has application foundations and a legacy EVM registry, but no Sui wallet or DeepBook integration. Documentation establishes intent; it does not convert planned features into implemented capabilities.
+The repository currently has application foundations and a Sui network registry/API contract, but no Sui client, wallet or DeepBook integration. Configuration evidence does not prove live network or trading capability.
 
 Classify claims explicitly:
 

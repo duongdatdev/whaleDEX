@@ -1,6 +1,6 @@
 import { z } from 'zod';
 
-export * from './chains.js';
+export * from './sui-networks.js';
 
 export const healthResponseSchema = z.object({ status: z.literal('ok') });
 

@@ -4,7 +4,7 @@ import { parseEnv } from './env.js';
 
 config({ path: new URL('../.env', import.meta.url), quiet: true });
 const env = parseEnv(process.env);
-const app = buildApp({ logger: true }, { defaultChainId: env.DEFAULT_CHAIN_ID });
+const app = buildApp({ logger: true }, { defaultNetwork: env.DEFAULT_SUI_NETWORK });
 
 async function shutdown(signal: string) {
   app.log.info({ signal }, 'Shutting down server');

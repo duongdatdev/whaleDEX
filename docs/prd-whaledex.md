@@ -20,14 +20,14 @@ MVP chỉ chạy trên **Sui Testnet**. Sui Mainnet, EVM, bridge, cross-chain, m
 
 ## 2. Bằng chứng hiện tại
 
-| Năng lực                                              | Trạng thái                                                                     |
-| ----------------------------------------------------- | ------------------------------------------------------------------------------ |
-| Monorepo Next.js 16, React 19, Fastify 5, TypeScript  | Đã có                                                                          |
-| Landing page và design system                         | Đã có trên nhánh giao diện, chưa phải ứng dụng giao dịch hoàn chỉnh            |
-| Health API, shared schema/config và test nền tảng     | Đã có                                                                          |
-| Registry EVM/Sepolia                                  | Đã có trong code nhưng là kiến trúc cũ, phải thay trong lát cắt triển khai Sui |
-| Sui wallet, gRPC client, DeepBookV3, balances, orders | Chưa triển khai                                                                |
-| Indexer, database, deployment và CI                   | Chưa triển khai                                                                |
+| Năng lực                                              | Trạng thái                                                          |
+| ----------------------------------------------------- | ------------------------------------------------------------------- |
+| Monorepo Next.js 16, React 19, Fastify 5, TypeScript  | Đã có                                                               |
+| Landing page và design system                         | Đã có trên nhánh giao diện, chưa phải ứng dụng giao dịch hoàn chỉnh |
+| Health API, shared schema/config và test nền tảng     | Đã có                                                               |
+| Sui network registry, env validation và API catalog   | Đã có; Testnet là mặc định và Mainnet bị tắt giao dịch              |
+| Sui wallet, gRPC client, DeepBookV3, balances, orders | Chưa triển khai                                                     |
+| Indexer, database, deployment và CI                   | Chưa triển khai                                                     |
 
 Tài liệu mô tả mục tiêu đã chấp thuận, không phải bằng chứng tính năng đã hoạt động. Source code, schema và test là nguồn sự thật về trạng thái triển khai.
 

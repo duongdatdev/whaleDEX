@@ -21,7 +21,7 @@ Implemented in the repository:
 
 - Next.js, React, Fastify and strict TypeScript monorepo foundations.
 - Static landing-page work, health API, shared configuration and baseline tests.
-- A legacy EVM/Sepolia registry that must be replaced before Sui integration.
+- Sui Testnet/Mainnet metadata, strict network environment validation and a public network catalog API.
 
 Not implemented: Sui wallet connection, gRPC client, DeepBook SDK integration, balances, order book, trading, indexer, database, deployment or CI.
 

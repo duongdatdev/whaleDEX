@@ -12,7 +12,7 @@ Recommended duration: 90–120 minutes. Work in pairs when possible: one learner
 
 ## Current scope
 
-Use [ADR-0003](../adr/0003-sui-deepbook-mvp.md) and the [product PRD](../prd-whaledex.md). The target is Sui Testnet + DeepBookV3; wallet and trading integration are not implemented. The EVM/Sepolia registry in source is legacy evidence to be replaced, not the current product target. Lab execution uses fixtures, local tests or token-only Testnet activity—never real funds.
+Use [ADR-0003](../adr/0003-sui-deepbook-mvp.md) and the [product PRD](../prd-whaledex.md). The target is Sui Testnet + DeepBookV3. Sui network metadata and validation are implemented; the live client, wallet and trading integration are not. Lab execution uses fixtures, local tests or token-only Testnet activity—never real funds.
 
 ## Rules
 
@@ -42,7 +42,7 @@ Analyze only the supplied repository excerpts. Return Capability, Status
 Sui support from documentation. List contradictions and missing evidence.
 ```
 
-Expected distinction: the TypeScript monorepo and health API are implemented; the EVM registry is implemented but legacy; Sui wallet, DeepBook market data and trading are proposed.
+Expected distinction: the TypeScript monorepo, health API and Sui network catalog are implemented; Sui wallet, DeepBook market data and trading are proposed.
 
 ## Part B — Discovery synthesis
 
