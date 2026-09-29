@@ -1,139 +1,196 @@
 import Link from 'next/link';
 
-function WaveMark() {
-  return (
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-      <path d="M2 12c3-4 6-4 9 0 3 4 6 4 9 0 3-4 4-4 4-4" />
-      <path d="M2 17c3-4 6-4 9 0 3 4 6 4 9 0 3-4 4-4 4-4" />
-      <path d="M2 7c3-4 6-4 9 0 3 4 6 4 9 0 3-4 4-4 4-4" />
-    </svg>
-  );
-}
+const productFacts = [
+  ['Mạng', 'Sui Testnet'],
+  ['Thanh khoản', 'DeepBookV3'],
+  ['Loại giao dịch', 'Spot'],
+  ['Lưu ký', 'Không lưu ký'],
+] as const;
 
-function ArrowRightIcon() {
-  return (
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-      <line x1="5" y1="12" x2="19" y2="12" />
-      <polyline points="12 5 19 12 12 19" />
-    </svg>
-  );
-}
-
-function CheckIcon() {
-  return (
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-      <polyline points="20 6 9 17 4 12" />
-    </svg>
-  );
-}
-
-const dualModes = [
-  {
-    mode: 'swap',
-    tag: 'Phổ thông · Nhanh gọn',
-    isFeatured: false,
-    title: 'Đổi token (Swap)',
-    description:
-      'Giao diện trực quan một thao tác. Tự động tính toán tỷ giá thực thi tối ưu, bảo vệ trượt giá chặt chẽ và hiển thị lượng nhận tối thiểu trước khi ký ví.',
-    features: [
-      'Báo giá tức thì từ sổ lệnh DeepBookV3',
-      'Mức trượt giá mặc định 0,5%, cảnh báo từ 1%',
-      'Tự động giữ gas reserve an toàn cho SUI',
-    ],
-    ctaText: 'Đến màn hình Swap',
-    ctaHref: '#swap-preview',
-  },
-  {
-    mode: 'pro',
-    tag: 'Chuyên nghiệp · Sổ lệnh CLOB',
-    isFeatured: true,
-    title: 'Bàn giao dịch Nâng cao (Pro Terminal)',
-    description:
-      'Dành cho nhà giao dịch chuyên nghiệp. Hệ thống khớp lệnh trung tâm trực tiếp on-chain, sổ lệnh đa tầng, độ trễ mili-giây và tùy chọn lệnh nâng cao.',
-    features: [
-      'Sổ lệnh Bid/Ask 10 cấp độ với hiệu ứng Tick-Flash',
-      'Lệnh Giới hạn (Limit) và Lệnh Chỉ Maker (Post-Only)',
-      'Tách bạch Số dư ví và Tài khoản BalanceManager',
-    ],
-    ctaText: 'Khám phá Pro Terminal',
-    ctaHref: '#pro-preview',
-  },
+const marketRows = [
+  { pair: 'SUI / USDC', source: 'DeepBookV3', status: 'Chờ dữ liệu' },
+  { pair: 'DEEP / SUI', source: 'DeepBookV3', status: 'Chờ dữ liệu' },
+  { pair: 'WAL / USDC', source: 'DeepBookV3', status: 'Chờ dữ liệu' },
 ] as const;
 
 const journeySteps = [
   {
-    step: '01',
     title: 'Kết nối ví Sui',
-    description:
-      'Hỗ trợ các ví chuẩn Sui như Sui Wallet, Suiet, Nightly. Thông tin tài khoản và mạng được kiểm tra tự động trước mọi thao tác.',
+    description: 'WhaleDEX sẽ kiểm tra đúng mạng Sui Testnet trước khi cho phép tạo giao dịch.',
   },
   {
-    step: '02',
-    title: 'Nhận token Faucet',
+    title: 'Nhận token thử nghiệm',
     description:
-      'Nhận token thử nghiệm (SUI, USDC, DEEP) hoàn toàn miễn phí từ vòi Faucet chính thức trên Sui Testnet để trải nghiệm không rủi ro.',
+      'Dùng faucet chính thức để nhận SUI Testnet trả phí gas. Token thử nghiệm không có giá trị thật.',
   },
   {
-    step: '03',
-    title: 'Xem trước & Ký xác nhận',
-    description:
-      'Quy trình Review 2 bước minh bạch: tỷ giá, tác động giá, phí gas ước tính và lượng nhận tối thiểu hiển thị đầy đủ trước khi mở ví ký.',
+    title: 'Xem lại và ký',
+    description: 'Kiểm tra tỷ giá, tác động giá, phí mạng và lượng nhận tối thiểu trước khi mở ví.',
   },
 ] as const;
 
 const faqs = [
   {
-    question: 'Token trên sàn có giá trị tiền thật không?',
+    question: 'Token trên WhaleDEX có giá trị tiền thật không?',
     answer:
-      'Hoàn toàn không. WhaleDEX hiện đang vận hành trên môi trường Sui Testnet. Toàn bộ các token như SUI, USDC, DEEP đều là tài sản thử nghiệm dùng để kiểm thử tính năng và không có giá trị quy đổi tài chính thực tế.',
+      'Không. Phiên bản hiện tại nhắm tới Sui Testnet. SUI, USDC, DEEP và các tài sản hiển thị trong giao diện đều là dữ liệu hoặc token thử nghiệm.',
   },
   {
-    question: 'BalanceManager là gì và tại sao cần sử dụng?',
+    question: 'Giao diện này đã giao dịch được chưa?',
     answer:
-      'BalanceManager là đối tượng tài khoản giao dịch on-chain trên DeepBookV3. Nó giữ tài sản ký quỹ để đặt và khớp lệnh tức thì mà không cần bạn phải ký ví từng lệnh nhỏ. Bạn giữ toàn quyền nạp và rút tài sản về ví cá nhân bất kỳ lúc nào.',
+      'Chưa. Đây là bản UI tĩnh để hoàn thiện luồng sử dụng và trạng thái sản phẩm. Kết nối ví, báo giá và ký giao dịch sẽ được tích hợp ở giai đoạn tiếp theo.',
   },
   {
-    question: 'Làm thế nào để nhận token SUI và token thử nghiệm?',
+    question: 'WhaleDEX có còn là DEX khi dùng DeepBookV3 không?',
     answer:
-      'Bạn có thể dùng tính năng Faucet tích hợp sẵn trong ví Sui (Sui Wallet / Suiet) hoặc qua kênh Discord chính thức của Sui Network để nhận SUI Testnet miễn phí dùng trả phí gas mạng.',
+      'Có. Lệnh được xử lý qua hạ tầng sổ lệnh on-chain của DeepBookV3 trên Sui. Người dùng kiểm soát ví và chỉ ký khi đã xem lại giao dịch.',
   },
   {
-    question: 'Chi phí giao dịch trên WhaleDEX được tính như thế nào?',
+    question: 'Phí giao dịch được hiển thị như thế nào?',
     answer:
-      'Mỗi giao dịch chỉ gồm 2 khoản phí minh bạch: Phí gas mạng Sui (thường dưới 0.01 SUI) và Phí giao thức DeepBookV3 (Maker/Taker theo quy chuẩn giao thức). WhaleDEX tuyệt đối không thu thêm bất kỳ phụ phí ẩn nào.',
+      'Khi backend được kết nối, màn hình xem lại sẽ tách phí mạng Sui và phí giao thức DeepBookV3. UI hiện tại không hiển thị con số ước tính khi chưa có dữ liệu thật.',
   },
 ] as const;
+
+function PreviewStatus() {
+  return (
+    <span className="preview-status">
+      <span aria-hidden="true" className="status-square" />
+      Dữ liệu chưa kết nối
+    </span>
+  );
+}
+
+function SwapPreview() {
+  return (
+    <article id="swap-preview" className="product-panel swap-panel" aria-labelledby="swap-title">
+      <div className="panel-heading">
+        <div>
+          <p className="panel-kicker">Bản xem trước giao diện</p>
+          <h3 id="swap-title">Đổi token</h3>
+        </div>
+        <PreviewStatus />
+      </div>
+
+      <div className="swap-fields" aria-label="Biểu mẫu đổi token chưa hoạt động">
+        <div className="token-field">
+          <div className="field-label-row">
+            <span>Bạn trả</span>
+            <span>Số dư: --</span>
+          </div>
+          <div className="token-value-row">
+            <span className="token-value tabular-nums">0.00</span>
+            <span className="token-select">SUI</span>
+          </div>
+        </div>
+
+        <div className="swap-direction" aria-hidden="true">
+          đổi sang
+        </div>
+
+        <div className="token-field">
+          <div className="field-label-row">
+            <span>Bạn nhận</span>
+            <span>Số dư: --</span>
+          </div>
+          <div className="token-value-row">
+            <span className="token-value muted tabular-nums">--</span>
+            <span className="token-select">USDC</span>
+          </div>
+        </div>
+      </div>
+
+      <dl className="quote-summary">
+        <div>
+          <dt>Tỷ giá</dt>
+          <dd>Chưa có dữ liệu</dd>
+        </div>
+        <div>
+          <dt>Phí mạng</dt>
+          <dd>Chưa ước tính</dd>
+        </div>
+      </dl>
+
+      <button className="btn btn-disabled btn-block" type="button" disabled>
+        Giao dịch chưa khả dụng
+      </button>
+      <p className="panel-note">Chức năng ví và báo giá đang được phát triển.</p>
+    </article>
+  );
+}
+
+function ProPreview() {
+  return (
+    <article id="pro-preview" className="product-panel pro-panel" aria-labelledby="pro-title">
+      <div className="panel-heading">
+        <div>
+          <p className="panel-kicker">Bản xem trước giao diện</p>
+          <h3 id="pro-title">Pro Terminal</h3>
+        </div>
+        <PreviewStatus />
+      </div>
+
+      <div className="terminal-tabs" aria-label="Cặp giao dịch minh họa">
+        <span className="terminal-tab active">SUI / USDC</span>
+        <span className="terminal-tab">DEEP / SUI</span>
+      </div>
+
+      <div className="orderbook" aria-label="Sổ lệnh chưa có dữ liệu">
+        <div className="orderbook-head">
+          <span>Giá</span>
+          <span>Khối lượng</span>
+          <span>Tổng</span>
+        </div>
+        <div className="empty-orderbook">
+          <p>Sổ lệnh chưa được kết nối</p>
+          <span>Bid và Ask sẽ xuất hiện từ DeepBookV3.</span>
+        </div>
+      </div>
+
+      <div className="terminal-order-row">
+        <div>
+          <span className="field-caption">Loại lệnh</span>
+          <strong>Limit</strong>
+        </div>
+        <div>
+          <span className="field-caption">Giá</span>
+          <strong className="tabular-nums">--</strong>
+        </div>
+        <div>
+          <span className="field-caption">Số lượng</span>
+          <strong className="tabular-nums">--</strong>
+        </div>
+      </div>
+
+      <button className="btn btn-disabled btn-block" type="button" disabled>
+        Đặt lệnh chưa khả dụng
+      </button>
+    </article>
+  );
+}
 
 export default function Home() {
   return (
     <div className="app-shell">
-      {/* Accessibility Skip Link */}
       <a className="skip-link" href="#main-content">
         Chuyển đến nội dung chính
       </a>
 
-      {/* Fixed Top Testnet Banner */}
       <div className="testnet-banner" role="region" aria-label="Môi trường thử nghiệm">
-        <strong>Sui Testnet:</strong> token thử nghiệm không có giá trị thật.
+        <strong>Sui Testnet:</strong> token thử nghiệm không có giá trị thật. Không dùng tiền thật.
       </div>
 
-      {/* Terminal Header */}
       <header className="app-header">
         <div className="container header-inner">
           <Link className="brand-group" href="/" aria-label="Trang chủ WhaleDEX">
-            <span className="brand-mark">
-              <WaveMark />
+            <span className="brand-monogram" aria-hidden="true">
+              W
             </span>
-            <span className="brand-name">
-              WhaleDEX
-              <span className="brand-badge">Sui CLOB</span>
-            </span>
+            <span className="brand-name">WhaleDEX</span>
+            <span className="network-label">Sui Testnet</span>
           </Link>
 
           <nav className="primary-nav" aria-label="Điều hướng chính">
-            <Link className="nav-link active" href="/">
-              WhaleDEX
-            </Link>
             <a className="nav-link" href="#modes">
               Giao dịch
             </a>
@@ -148,198 +205,146 @@ export default function Home() {
             </a>
           </nav>
 
-          <div className="header-actions">
-            <div className="telemetry-badge" title="Độ trễ RPC mạng Sui Testnet">
-              <span className="pulse-dot" aria-hidden="true" />
-              <span className="tabular-nums">24ms</span>
-              <span>Sui Testnet</span>
-            </div>
-
-            <button
-              type="button"
-              className="btn btn-primary btn-sm"
-              aria-label="Kết nối ví Sui"
-            >
-              Kết nối ví Sui
-            </button>
-          </div>
+          <button className="btn btn-header" type="button" disabled>
+            Ví đang phát triển
+          </button>
         </div>
       </header>
 
-      {/* Main Content */}
       <main id="main-content">
-        {/* Hero Section */}
         <section className="hero-section" aria-labelledby="hero-title">
+          <div className="container hero-grid">
+            <div className="hero-content">
+              <p className="hero-kicker">Spot DEX trên Sui Testnet</p>
+              <h1 id="hero-title">
+                <span>Giao dịch on-chain.</span>
+                <span>Tự giữ tài sản.</span>
+              </h1>
+              <p className="hero-subtitle">
+                Trải nghiệm Swap và sổ lệnh DeepBookV3 trong môi trường thử nghiệm không dùng tiền
+                thật.
+              </p>
+              <div className="hero-actions">
+                <a className="btn btn-primary" href="#modes">
+                  Xem giao diện
+                </a>
+                <a className="btn btn-secondary" href="#journey">
+                  Cách thử Testnet
+                </a>
+              </div>
+            </div>
+
+            <aside className="protocol-card" aria-label="Thông tin sản phẩm">
+              <div className="protocol-card-head">
+                <span>Kiến trúc đã chọn</span>
+                <span className="ui-only-label">UI tĩnh</span>
+              </div>
+              <dl className="protocol-facts">
+                {productFacts.map(([label, value]) => (
+                  <div key={label}>
+                    <dt>{label}</dt>
+                    <dd>{value}</dd>
+                  </div>
+                ))}
+              </dl>
+              <p>Không hiển thị giá, số dư hay phí giả khi nguồn dữ liệu chưa được kết nối.</p>
+            </aside>
+          </div>
+        </section>
+
+        <section id="modes" className="section product-section" aria-labelledby="modes-title">
           <div className="container">
-            <div className="hero-grid">
-              <div className="hero-content">
-                <div className="eyebrow-tag">
-                  <span className="pulse-dot" aria-hidden="true" />
-                  DeepBookV3 Spot DEX · Sui Testnet
-                </div>
-
-                <h1 id="hero-title" className="hero-title">
-                  Sàn giao dịch Spot phi tập trung trên Sui Testnet
-                </h1>
-
-                <p className="hero-subtitle">
-                  Giao dịch không lưu ký qua sổ lệnh DeepBookV3. Toàn quyền kiểm soát tài sản,
-                  khớp lệnh on-chain tốc độ cao với phí gas tối thiểu.
-                </p>
-
-                <div className="hero-actions">
-                  <a href="#modes" className="btn btn-primary">
-                    Mở ứng dụng
-                    <ArrowRightIcon />
-                  </a>
-                  <a href="#journey" className="btn btn-secondary">
-                    Hướng dẫn Testnet
-                  </a>
-                </div>
-              </div>
-
-              {/* Terminal Radar Graphic */}
-              <div className="terminal-card" aria-label="Thông số kỹ thuật mạng và giao thức">
-                <div className="terminal-card-header">
-                  <div className="terminal-dots" aria-hidden="true">
-                    <span />
-                    <span />
-                    <span />
-                  </div>
-                  <span className="terminal-label">WHALEDEX_PROTOCOL // LIVE_METRICS</span>
-                </div>
-
-                <div className="terminal-card-body">
-                  <div className="radar-display">
-                    <div className="radar-head">
-                      <span>Cơ chế khớp lệnh</span>
-                      <span className="brand-badge">CLOB On-chain</span>
-                    </div>
-                    <div className="radar-metrics">
-                      <div className="metric-box">
-                        <p className="metric-label">Giao thức</p>
-                        <p className="metric-value primary">DeepBookV3</p>
-                      </div>
-                      <div className="metric-box">
-                        <p className="metric-label">Phí gas ước tính</p>
-                        <p className="metric-value positive tabular-nums">&lt; 0.01 SUI</p>
-                      </div>
-                      <div className="metric-box">
-                        <p className="metric-label">Lưu ký tài sản</p>
-                        <p className="metric-value positive">100% Tự lưu ký</p>
-                      </div>
-                      <div className="metric-box">
-                        <p className="metric-label">Thời gian xác nhận</p>
-                        <p className="metric-value tabular-nums">~300ms</p>
-                      </div>
-                    </div>
-                  </div>
-
-                  <p style={{ fontSize: '12px', color: 'var(--color-text-muted)' }}>
-                    Chuẩn minh bạch: Không tạo khối lượng ảo, không đòn bẩy rủi ro, mọi trạng thái
-                    giao dịch đều hiển thị mã băm (Digest) đối soát trên Sui Explorer.
-                  </p>
-                </div>
-              </div>
+            <div className="section-heading">
+              <h2 id="modes-title">Hai cách giao dịch, cùng một nguồn thanh khoản</h2>
+              <p>
+                Swap dành cho thao tác nhanh. Pro Terminal dành cho lệnh Limit và theo dõi sổ lệnh.
+              </p>
+            </div>
+            <div className="product-grid">
+              <SwapPreview />
+              <ProPreview />
             </div>
           </div>
         </section>
 
-        {/* Dual-Mode Section */}
-        <section id="modes" className="section" aria-labelledby="modes-title">
-          <div className="container">
-            <div className="section-header">
-              <p className="section-eyebrow">Linh hoạt theo nhu cầu</p>
-              <h2 id="modes-title" className="section-title">
-                Hai chế độ giao dịch chuyên biệt
-              </h2>
-              <p className="section-description">
-                Chuyển đổi liền mạch giữa giao diện Đổi token tối giản và Bàn giao dịch chuyên nghiệp
-                với đầy đủ công cụ phân tích sổ lệnh.
+        <section id="markets" className="section markets-section" aria-labelledby="markets-title">
+          <div className="container markets-layout">
+            <div className="markets-copy">
+              <p className="section-kicker">Thị trường</p>
+              <h2 id="markets-title">Chỉ hiện số liệu khi có nguồn xác thực</h2>
+              <p>
+                Bảng giá sẽ đọc dữ liệu pool DeepBookV3. Trước khi tích hợp, mọi trường động đều giữ
+                trạng thái trống.
               </p>
             </div>
 
-            <div className="dual-mode-grid">
-              {dualModes.map((item) => (
-                <article key={item.mode} className="mode-card">
-                  <div>
-                    <span className={`mode-tag ${item.isFeatured ? 'featured' : ''}`}>
-                      {item.tag}
-                    </span>
-                    <h3 className="mode-title">{item.title}</h3>
-                    <p className="mode-desc">{item.description}</p>
-                  </div>
-
-                  <ul className="feature-list" aria-label={`Tính năng của ${item.title}`}>
-                    {item.features.map((feature) => (
-                      <li key={feature} className="feature-item">
-                        <span className="feature-check" aria-hidden="true">
-                          <CheckIcon />
-                        </span>
-                        <span>{feature}</span>
-                      </li>
-                    ))}
-                  </ul>
-
-                  <a href={item.ctaHref} className={`btn ${item.isFeatured ? 'btn-primary' : 'btn-secondary'}`}>
-                    {item.ctaText}
-                    <ArrowRightIcon />
-                  </a>
-                </article>
-              ))}
+            <div
+              className="market-table-wrap"
+              role="region"
+              aria-label="Thị trường chưa kết nối dữ liệu"
+              tabIndex={0}
+            >
+              <table className="market-table">
+                <thead>
+                  <tr>
+                    <th scope="col">Cặp giao dịch</th>
+                    <th scope="col">Nguồn</th>
+                    <th scope="col">Giá gần nhất</th>
+                    <th scope="col">Trạng thái</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {marketRows.map((market) => (
+                    <tr key={market.pair}>
+                      <th scope="row">{market.pair}</th>
+                      <td>{market.source}</td>
+                      <td className="tabular-nums">--</td>
+                      <td>
+                        <span className="table-status">{market.status}</span>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </div>
           </div>
         </section>
 
-        {/* 3-Step Journey Section */}
-        <section id="journey" className="section" aria-labelledby="journey-title">
-          <div className="container">
-            <div className="section-header">
-              <p className="section-eyebrow">Bắt đầu trong 3 phút</p>
-              <h2 id="journey-title" className="section-title">
-                Quy trình tiếp cận an toàn trên Sui Testnet
-              </h2>
-              <p className="section-description">
-                Được thiết kế để bạn luôn nắm rõ quyền kiểm soát ví và ranh giới giá trước khi bất kỳ
-                giao dịch nào được ký.
-              </p>
+        <section id="journey" className="section journey-section" aria-labelledby="journey-title">
+          <div className="container journey-layout">
+            <div className="section-heading journey-heading">
+              <h2 id="journey-title">Luồng thử nghiệm rõ ràng trước khi ký</h2>
+              <p>Mỗi bước đều cho biết mạng, dữ liệu và hành động nào đang được sử dụng.</p>
             </div>
-
-            <div className="journey-grid">
+            <ol className="journey-list">
               {journeySteps.map((step) => (
-                <article key={step.step} className="journey-step">
-                  <span className="step-number">{step.step}</span>
-                  <h3 className="step-title">{step.title}</h3>
-                  <p className="step-desc">{step.description}</p>
-                </article>
+                <li key={step.title}>
+                  <h3>{step.title}</h3>
+                  <p>{step.description}</p>
+                </li>
               ))}
-            </div>
+            </ol>
           </div>
         </section>
 
-        {/* FAQ Accordion Section */}
-        <section id="faq" className="section" aria-labelledby="faq-title">
-          <div className="container">
-            <div className="section-header">
-              <p className="section-eyebrow">Giải đáp thắc mắc</p>
-              <h2 id="faq-title" className="section-title">
-                Câu hỏi thường gặp
-              </h2>
-              <p className="section-description">
-                Thông tin minh bạch về cơ chế hoạt động, phí giao dịch và tài sản trên môi trường thử nghiệm.
+        <section id="faq" className="section faq-section" aria-labelledby="faq-title">
+          <div className="container faq-layout">
+            <div>
+              <h2 id="faq-title">Cần biết trước khi thử</h2>
+              <p className="faq-intro">
+                WhaleDEX hiện là giao diện thử nghiệm, chưa xử lý giao dịch thật.
               </p>
             </div>
-
             <div className="faq-list">
               {faqs.map((faq, index) => (
                 <details key={faq.question} className="faq-item" open={index === 0}>
-                  <summary className="faq-summary">
+                  <summary>
                     <span>{faq.question}</span>
-                    <span className="faq-icon" aria-hidden="true">
+                    <span className="faq-symbol" aria-hidden="true">
                       +
                     </span>
                   </summary>
-                  <p className="faq-content">{faq.answer}</p>
+                  <p>{faq.answer}</p>
                 </details>
               ))}
             </div>
@@ -347,59 +352,26 @@ export default function Home() {
         </section>
       </main>
 
-      {/* App Footer */}
       <footer className="app-footer">
         <div className="container footer-inner">
-          <div className="footer-brand">
-            <div className="brand-group">
-              <span className="brand-mark">
-                <WaveMark />
-              </span>
-              <span className="brand-name">WhaleDEX</span>
-            </div>
-            <p className="footer-desc">
-              Sàn giao dịch Spot phi tập trung trên Sui Testnet, xây dựng trên nền tảng sổ lệnh
-              DeepBookV3. Khớp lệnh minh bạch, tốc độ cao và hoàn toàn không lưu ký.
-            </p>
+          <div>
+            <div className="footer-brand">WhaleDEX</div>
+            <p>Spot DEX không lưu ký trên Sui Testnet, sử dụng DeepBookV3.</p>
           </div>
-
           <div className="footer-links">
-            <div className="footer-col">
-              <p className="footer-col-title">Sản phẩm</p>
-              <a href="#modes">Đổi token (Swap)</a>
-              <a href="#modes">Bàn giao dịch (Pro)</a>
-              <a href="#markets">Thị trường</a>
-            </div>
-
-            <div className="footer-col">
-              <p className="footer-col-title">Học tập & Tài liệu</p>
-              <a href="#journey">Hướng dẫn Faucet</a>
-              <a href="#faq">Câu hỏi thường gặp</a>
-              <a href="https://docs.sui.io" target="_blank" rel="noopener noreferrer">
-                Sui Documentation
-              </a>
-            </div>
-
-            <div className="footer-col">
-              <p className="footer-col-title">Giao thức</p>
-              <span style={{ fontSize: '13px', color: 'var(--color-text-muted)' }}>
-                DeepBookV3 CLOB
-              </span>
-              <span style={{ fontSize: '13px', color: 'var(--color-text-muted)' }}>
-                Mạng: Sui Testnet
-              </span>
-            </div>
+            <a href="#modes">Giao dịch</a>
+            <a href="#markets">Thị trường</a>
+            <a href="#faq">Hỏi đáp</a>
+            <a href="https://docs.sui.io" target="_blank" rel="noopener noreferrer">
+              Tài liệu Sui
+            </a>
           </div>
         </div>
-
-        <div className="container" style={{ marginTop: 'var(--space-6)' }}>
-          <div className="footer-bottom">
-            <span>© 2026 WhaleDEX Foundation. Bảo lưu mọi quyền.</span>
-            <span>Môi trường thử nghiệm Sui Testnet · Không sử dụng tiền thật</span>
-          </div>
+        <div className="container footer-bottom">
+          <span>© 2026 WhaleDEX</span>
+          <span>UI thử nghiệm / Không dùng tiền thật</span>
         </div>
       </footer>
     </div>
   );
 }
-

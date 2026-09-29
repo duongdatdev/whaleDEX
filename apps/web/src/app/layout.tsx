@@ -18,9 +18,9 @@ const jetBrainsMono = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
-  title: 'WhaleDEX — Sàn Giao Dịch Spot Phi Tập Trung Trên Sui Testnet',
+  title: 'WhaleDEX | Spot DEX trên Sui Testnet',
   description:
-    'Giao dịch không lưu ký qua sổ lệnh DeepBookV3. Toàn quyền kiểm soát tài sản, khớp lệnh on-chain tốc độ cao với phí gas tối thiểu.',
+    'Giao diện thử nghiệm cho Spot DEX không lưu ký trên Sui Testnet, sử dụng sổ lệnh DeepBookV3.',
   keywords: ['WhaleDEX', 'Sui', 'DeepBookV3', 'DEX', 'Spot', 'Testnet', 'Crypto'],
 };
 
@@ -31,4 +31,3 @@ export default function RootLayout({ children }: Readonly<{ children: ReactNode 
     </html>
   );
 }
-
