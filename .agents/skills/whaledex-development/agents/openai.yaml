@@ -1,0 +1,4 @@
+interface:
+  display_name: 'WhaleDEX Development'
+  short_description: 'Develop and review WhaleDEX safely'
+  default_prompt: 'Use $whaledex-development to implement this change in the WhaleDEX repository.'
