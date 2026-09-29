@@ -100,12 +100,14 @@ Root development commands prepare shared before starting the applications, so no
 
 ## Environment
 
-| Application | Variable              | Default                 |
-| ----------- | --------------------- | ----------------------- |
-| API         | `NODE_ENV`            | `development`           |
-| API         | `HOST`                | `127.0.0.1`             |
-| API         | `PORT`                | `3001`                  |
-| Web         | `NEXT_PUBLIC_API_URL` | `http://localhost:3001` |
+| Application | Variable                          | Default                 |
+| ----------- | --------------------------------- | ----------------------- |
+| API         | `NODE_ENV`                        | `development`           |
+| API         | `HOST`                            | `127.0.0.1`             |
+| API         | `PORT`                            | `3001`                  |
+| API         | `DEFAULT_SUI_NETWORK`             | `testnet`               |
+| Web         | `NEXT_PUBLIC_API_URL`             | `http://localhost:3001` |
+| Web         | `NEXT_PUBLIC_DEFAULT_SUI_NETWORK` | `testnet`               |
 
 The API loads `apps/api/.env` through dotenv; process environment variables take precedence. Next.js uses its built-in `.env*` loading, with `apps/web/.env.local` recommended for local configuration. Both applications use Zod to report invalid variable names without printing configuration values.
 
@@ -121,12 +123,11 @@ integration will use `@mysten/deepbook-v3`. Sui/DeepBook remains the source of t
 orders, fills, and settlement. The API may later cache or index public data but must not receive
 private keys or sign transactions for users.
 
-The current source still contains the previous EVM/Sepolia registry in
-`packages/shared/src/chains.ts`, its environment variables, and `GET /v1/chains`. This is legacy
-implementation evidence, not the target architecture. The first implementation slice in the
-[roadmap](docs/DOCS.md) replaces it with Sui network configuration and updates the related tests.
-Until that change lands, the repository does not have a working Sui client, wallet connection, or
-DeepBook trading flow.
+The shared registry in `packages/shared/src/sui-networks.ts` defines Sui Testnet and a
+transaction-disabled Mainnet entry. Testnet is the default and the only transaction-enabled MVP
+network. The API exposes this metadata through `GET /v1/networks`; web and API environment inputs
+use `NEXT_PUBLIC_DEFAULT_SUI_NETWORK` and `DEFAULT_SUI_NETWORK`. This configuration does not yet
+provide a live Sui client, wallet connection, or DeepBook trading flow.
 
 ## Running a production build locally
 
@@ -160,9 +161,9 @@ API tests use Fastify injection without opening a real port. Web tests verify th
 
 ## Future development
 
-The roadmap targets a non-custodial spot DEX on Sui Testnet: replace the legacy EVM registry,
-connect a Sui wallet, integrate DeepBook market data, then deliver market orders, limit orders,
-history, and Testnet hardening. Sui Mainnet and EVM/multi-chain require separate future decisions.
+The roadmap targets a non-custodial spot DEX on Sui Testnet: connect a Sui wallet, integrate
+DeepBook market data, then deliver market orders, limit orders, history, and Testnet hardening.
+Sui Mainnet and EVM/multi-chain require separate future decisions.
 Wallet connection, Sui RPC/gRPC clients, DeepBook trading, indexing, a database, Docker,
 deployment, and CI are not implemented yet. Follow [the development roadmap](docs/DOCS.md) for
 the accepted delivery order.

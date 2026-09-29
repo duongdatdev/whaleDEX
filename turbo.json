@@ -7,8 +7,8 @@
       "env": [
         "NODE_ENV",
         "NEXT_PUBLIC_API_URL",
-        "NEXT_PUBLIC_DEFAULT_CHAIN_ID",
-        "DEFAULT_CHAIN_ID"
+        "NEXT_PUBLIC_DEFAULT_SUI_NETWORK",
+        "DEFAULT_SUI_NETWORK"
       ],
       "outputs": ["dist/**", ".next/**", "!.next/cache/**"]
     },
@@ -21,8 +21,8 @@
         "HOST",
         "PORT",
         "NEXT_PUBLIC_API_URL",
-        "NEXT_PUBLIC_DEFAULT_CHAIN_ID",
-        "DEFAULT_CHAIN_ID"
+        "NEXT_PUBLIC_DEFAULT_SUI_NETWORK",
+        "DEFAULT_SUI_NETWORK"
       ]
     },
     "lint": { "dependsOn": ["^build"] },

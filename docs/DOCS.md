@@ -13,9 +13,7 @@ Tài liệu này quy định thứ tự triển khai cho [PRD 3.0](prd-whaledex.
 
 ## 2. Trạng thái hiện tại
 
-Đã có monorepo Next.js/Fastify/TypeScript, landing page, shared package, health API và test nền tảng. Code vẫn chứa registry EVM/Sepolia từ hướng kiến trúc cũ; wallet, Sui client, DeepBook integration và giao dịch chưa được triển khai.
-
-Tài liệu Sui không biến registry hiện tại thành Sui implementation. Lát cắt đầu tiên phải thay schema/config bằng code và test tương ứng.
+Đã có monorepo Next.js/Fastify/TypeScript, landing page, shared package, health API, Sui network registry/env validation, `GET /v1/networks` và test nền tảng. Wallet, Sui client, DeepBook integration và giao dịch chưa được triển khai.
 
 ## 3. Kiến trúc mục tiêu
 
@@ -51,14 +49,14 @@ Nghiệm thu: không còn tài liệu hiện hành mô tả EVM/Sepolia là ph�
 
 ### Giai đoạn 1 — Cấu hình Sui
 
-- [ ] Thay chain ID số và EVM registry bằng network schema `testnet | mainnet` phù hợp Sui.
-- [ ] Đặt Testnet là network duy nhất được bật giao dịch.
-- [ ] Cấu hình gRPC endpoint/fallback và Sui Explorer.
-- [ ] Cập nhật env, API catalog, shared exports và toàn bộ test liên quan.
+- [x] Thay chain ID số và EVM registry bằng network schema `testnet | mainnet` phù hợp Sui.
+- [x] Đặt Testnet là network duy nhất được bật giao dịch.
+- [x] Cấu hình public gRPC endpoint và Sui Explorer; fallback provider vẫn thuộc DEP-01.
+- [x] Cập nhật env, API catalog, shared exports và toàn bộ test liên quan.
 
 Nghiệm thu: config sai/thiếu bị từ chối; API và web thống nhất network; không còn EVM registry trong runtime MVP.
 
-Commit dự kiến: `refactor(chains): replace EVM registry with Sui networks`
+Commit dự kiến: `refactor(networks): replace EVM registry with Sui configuration`
 
 ### Giai đoạn 2 — Ví và public reads
 

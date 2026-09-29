@@ -6,7 +6,7 @@ Canonical definitions: [product PRD](../prd-whaledex.md). Learning summary: [MVP
 
 | Goal/source  | Requirement   | Acceptance evidence                                                                | Component           | Current status                     |
 | ------------ | ------------- | ---------------------------------------------------------------------------------- | ------------------- | ---------------------------------- |
-| G-01, G-03   | FR-NETWORK-01 | Testnet config validates; wrong network blocks signing with recovery guidance      | Shared/web          | Planned; legacy EVM config exists  |
+| G-01, G-03   | FR-NETWORK-01 | Testnet config/catalog tests pass; wallet network guard remains unimplemented      | Shared/API/web      | Partial                            |
 | G-01, G-04   | FR-WALLET-01  | Connect/disconnect/reject flows work without API receiving secrets                 | Web                 | Planned                            |
 | G-01         | FR-WALLET-02  | Account/network change invalidates derived state; submitted digest remains tracked | Web                 | Planned                            |
 | G-01, DEP-02 | FR-MARKET-01  | Unknown coin type/pool/package is rejected; verified market metadata renders       | Shared/adapter      | Planned                            |
@@ -40,4 +40,4 @@ Canonical definitions: [product PRD](../prd-whaledex.md). Learning summary: [MVP
 
 ## Current audit
 
-The repository foundation is implemented, but all Sui/DeepBook requirements above remain planned. The existing EVM chain registry is legacy code scheduled for replacement; it is not partial proof of Sui network support. No document may claim live wallet, market data or trading until corresponding source and test evidence lands.
+The repository foundation and Sui network configuration contract are implemented; FR-NETWORK-01 remains partial until a wallet network guard exists. All wallet, market data and trading requirements remain planned. No document may claim live network access or trading until corresponding source and test evidence lands.
