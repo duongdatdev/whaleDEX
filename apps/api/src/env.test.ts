@@ -7,7 +7,7 @@ describe('API environment', () => {
       NODE_ENV: 'development',
       HOST: '127.0.0.1',
       PORT: 3001,
-      DEFAULT_CHAIN_ID: 11155111,
+      DEFAULT_SUI_NETWORK: 'testnet',
     });
   });
 
@@ -15,15 +15,15 @@ describe('API environment', () => {
     expect(parseEnv({ NODE_ENV: 'production', HOST: '0.0.0.0', PORT: '8080' }).PORT).toBe(8080);
   });
 
-  it('accepts a configured mainnet', () => {
-    expect(parseEnv({ DEFAULT_CHAIN_ID: '8453' }).DEFAULT_CHAIN_ID).toBe(8453);
+  it('accepts a configured Sui Mainnet read context', () => {
+    expect(parseEnv({ DEFAULT_SUI_NETWORK: 'mainnet' }).DEFAULT_SUI_NETWORK).toBe('mainnet');
   });
 
-  it.each(['', '10', 'secret-value'])(
-    'rejects invalid default chain %j without exposing values',
-    (DEFAULT_CHAIN_ID) => {
-      expect(() => parseEnv({ DEFAULT_CHAIN_ID })).toThrow(
-        'Invalid environment variables: DEFAULT_CHAIN_ID',
+  it.each(['', 'sepolia', '11155111', 'secret-value'])(
+    'rejects invalid default Sui network %j without exposing values',
+    (DEFAULT_SUI_NETWORK) => {
+      expect(() => parseEnv({ DEFAULT_SUI_NETWORK })).toThrow(
+        'Invalid environment variables: DEFAULT_SUI_NETWORK',
       );
     },
   );
