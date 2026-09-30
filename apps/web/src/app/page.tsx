@@ -1,3 +1,5 @@
+import { WalletLoader } from '../components/wallet-loader';
+
 export default function Home() {
   return (
     <main className="shell">
@@ -8,13 +10,10 @@ export default function Home() {
         WhaleDEX
       </header>
       <section className="intro" aria-labelledby="page-title">
-        <p className="eyebrow">WhaleDEX / Foundation</p>
-        <h1 id="page-title">DEX App</h1>
-        <p className="description">A clean foundation for what comes next.</p>
-        <span className="status">
-          <span aria-hidden="true" />
-          Frontend is ready
-        </span>
+        <p className="eyebrow">Sui Testnet · Token thử nghiệm không có giá trị thật</p>
+        <h1 id="page-title">Giao dịch trên Sui</h1>
+        <p className="description">Ví của bạn. Chữ ký của bạn. Thanh khoản từ DeepBookV3.</p>
+        <WalletLoader />
       </section>
       <footer>WhaleDEX — Project foundation</footer>
     </main>

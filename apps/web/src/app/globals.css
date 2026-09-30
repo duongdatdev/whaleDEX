@@ -85,3 +85,68 @@ footer {
   color: #9ab0b8;
   font-size: 12px;
 }
+
+.panel {
+  margin-top: 24px;
+  padding: 24px;
+  background: #0b1322;
+  border: 1px solid #1e2e48;
+  border-radius: 8px;
+}
+.row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+.mono {
+  font-family: monospace;
+  font-variant-numeric: tabular-nums;
+}
+.address {
+  overflow-wrap: anywhere;
+}
+button,
+input,
+select {
+  font: inherit;
+  padding: 10px 14px;
+  border-radius: 4px;
+  border: 1px solid #3b5278;
+}
+button {
+  cursor: pointer;
+  background: #00f0ff;
+  color: #060b14;
+}
+button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+input,
+select {
+  background: #111c30;
+  color: #f1f5fa;
+}
+a {
+  color: #00f0ff;
+}
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+select:focus-visible {
+  outline: 2px solid #00f0ff;
+  outline-offset: 4px;
+}
+.panel h2 {
+  margin: 0;
+  font-size: 24px;
+}
+.panel p {
+  line-height: 1.6;
+}
+.panel a {
+  display: inline-block;
+  margin-top: 12px;
+}

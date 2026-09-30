@@ -12,6 +12,7 @@
     "test": "vitest run"
   },
   "dependencies": {
+    "@mysten/dapp-kit-react": "2.1.38",
     "@mysten/sui": "2.34.0",
     "@whaledex/shared": "workspace:*",
     "next": "16.3.4",
