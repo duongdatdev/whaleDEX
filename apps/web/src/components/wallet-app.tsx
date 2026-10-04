@@ -4,8 +4,11 @@ import { DAppKitProvider } from '@mysten/dapp-kit-react';
 import { dAppKit } from '../lib/dapp-kit';
 import { env } from '../env';
 import { WalletPanel } from './wallet-panel';
+import { TradeDesk } from './trade-desk';
+import { useState } from 'react';
 
 export default function WalletApp() {
+  const [balanceVersion, setBalanceVersion] = useState(0);
   if (env.NEXT_PUBLIC_DEFAULT_SUI_NETWORK !== 'testnet') {
     return (
       <p role="alert">
@@ -15,7 +18,8 @@ export default function WalletApp() {
   }
   return (
     <DAppKitProvider dAppKit={dAppKit}>
-      <WalletPanel />
+      <WalletPanel key={balanceVersion} />
+      <TradeDesk onConfirmed={() => setBalanceVersion((value) => value + 1)} />
     </DAppKitProvider>
   );
 }

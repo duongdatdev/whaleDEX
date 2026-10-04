@@ -15,7 +15,7 @@ export default function Home() {
         <p className="description">Ví của bạn. Chữ ký của bạn. Thanh khoản từ DeepBookV3.</p>
         <WalletLoader />
       </section>
-      <footer>WhaleDEX — Project foundation</footer>
+      <footer>WhaleDEX · Sui Testnet · DeepBookV3</footer>
     </main>
   );
 }
