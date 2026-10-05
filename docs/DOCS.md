@@ -13,7 +13,7 @@ Tài liệu này quy định thứ tự triển khai cho [PRD 3.0](prd-whaledex.
 
 ## 2. Trạng thái hiện tại
 
-Đã có monorepo Next.js/Fastify/TypeScript, landing page, shared package, health API, Sui network registry/env validation, `GET /v1/networks` và test nền tảng. Wallet, Sui client, DeepBook integration và giao dịch chưa được triển khai.
+Đã có monorepo, Sui gRPC/env, health/readiness/catalog API, kết nối ví Sui, số dư SUI, sổ lệnh SUI/DBUSDC và luồng swap DeepBook Testnet: quote → mô phỏng → review → yêu cầu ký → theo dõi digest. Pool và quote đã kiểm tra chỉ đọc trên Testnet ngày 2026-10-05; test tự động kiểm tra các trạng thái giao dịch. Chưa kiểm thử chữ ký/giao dịch end-to-end bằng ví thật và chưa kiểm tra trực quan trình duyệt. Limit order, BalanceManager, cancel và lịch sử đầy đủ chưa triển khai; MVP chưa đạt release gate.
 
 ## 3. Kiến trúc mục tiêu
 
@@ -60,10 +60,12 @@ Commit dự kiến: `refactor(networks): replace EVM registry with Sui configura
 
 ### Giai đoạn 2 — Ví và public reads
 
-- [ ] Thêm `@mysten/sui` và `@mysten/dapp-kit-react`.
-- [ ] Tạo `SuiGrpcClient`, provider và connect/disconnect flow.
+- [x] Thêm `@mysten/sui` và cấu hình `SuiGrpcClient` cho API/web với Testnet mặc định.
+- [x] Thêm URL override, timeout, readiness và test lỗi provider/network mismatch.
+- [x] Thêm `@mysten/dapp-kit-react`, wallet provider và connect/disconnect flow.
 - [ ] Xử lý account/network change, rejected connection và missing wallet.
-- [ ] Đọc SUI gas balance và coin balances theo coin type/decimals.
+- [x] Đọc và hiển thị SUI gas balance; loại bỏ kết quả cũ khi đổi account.
+- [ ] Hiển thị đầy đủ coin balances; hiện DBUSDC/DEEP mới được kiểm tra ở bước preflight.
 
 Nghiệm thu: kết nối ví Testnet, đổi account làm mới đúng dữ liệu và ứng dụng không nhận private key.
 
@@ -71,10 +73,10 @@ Commit dự kiến: `feat(wallet): add Sui wallet connection`
 
 ### Giai đoạn 3 — DeepBook market data
 
-- [ ] Thêm `@mysten/deepbook-v3` và `SuiDeepBookAdapter`.
-- [ ] Xác minh deployment/pool/coin type từ SDK/config chính thức.
-- [ ] Đọc pool metadata, order book, best bid/ask và freshness.
-- [ ] Xây loading, empty, stale và error states; không dựng volume/price giả.
+- [x] Thêm `@mysten/deepbook-v3` và adapter tại `apps/web/src/lib/deepbook.ts`.
+- [x] Đối chiếu pool SUI/DBUSDC, coin type từ SDK với registry Testnet.
+- [x] Đọc pool metadata, các mức bid/ask và timestamp; làm mới thủ công.
+- [x] Xây loading, empty, stale và error states; không dựng volume/price giả.
 
 Nghiệm thu: một market Testnet đã xác minh hiển thị dữ liệu có nguồn và lỗi tách biệt.
 
@@ -82,10 +84,12 @@ Commit dự kiến: `feat(markets): integrate DeepBook spot market data`
 
 ### Giai đoạn 4 — Market order
 
-- [ ] Form buy/sell với amount validation và gas reserve.
-- [ ] Quote/preflight, price limit, phí và review intent.
-- [ ] Ký qua ví, theo dõi digest và link Explorer.
-- [ ] Refresh balance/book/history sau confirmed result.
+- [x] Form swap hai chiều với amount validation, lot/minimum size phía bán và gas reserve; mô phỏng kiểm tra điều kiện on-chain.
+- [x] Quote/preflight, minimum output theo slippage, phí DEEP/gas và review intent.
+- [x] Tích hợp yêu cầu ký qua ví, theo dõi digest và link Explorer; chờ kiểm thử ví thật.
+- [x] Refresh số dư SUI và book sau confirmed result; lưu digest gần nhất để kiểm tra lại sau reload.
+- [ ] Kiểm thử chữ ký và giao dịch end-to-end bằng token Testnet; chuẩn bị DBUSDC/DEEP cho ví thử nghiệm.
+- [ ] Hoàn thiện price impact, lịch sử và refresh toàn bộ coin balances.
 
 Nghiệm thu: connect → quote → review → sign → confirmed chạy end-to-end bằng token Testnet; rejected/failed/unknown không bị báo thành công.
 
@@ -131,7 +135,7 @@ Chỉ thêm endpoint khi có consumer thực tế:
 | Endpoint                           | Mục đích                               |
 | ---------------------------------- | -------------------------------------- |
 | `GET /health`                      | Liveness hiện có                       |
-| `GET /ready`                       | Trạng thái dependency bắt buộc         |
+| `GET /ready`                       | Đã có: kiểm tra kết nối và network Sui |
 | `GET /v1/networks`                 | Sui network metadata và release status |
 | `GET /v1/markets`                  | Allowlisted DeepBook markets           |
 | `GET /v1/markets/:id/book`         | Cached public order-book read nếu cần  |

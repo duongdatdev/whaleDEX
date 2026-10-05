@@ -1,6 +1,6 @@
 # WhaleDEX
 
-A foundation monorepo for a DEX project, with independently runnable frontend and backend applications. Trading logic and blockchain integrations are not implemented yet.
+A Sui Testnet DEX monorepo with independently runnable web/API applications, Sui wallet connection, and a DeepBookV3 SUI/DBUSDC swap flow. Signed end-to-end wallet testing is still required before a Testnet release.
 
 ## Technology stack
 
@@ -78,7 +78,7 @@ cp apps/api/.env.example apps/api/.env
 pnpm dev
 ```
 
-The web app displays **DEX App** at http://localhost:3000. The API returns `{"status":"ok"}` at http://localhost:3001/health. The page currently runs independently of the API; the “Frontend is ready” label does not indicate API health.
+The web app at http://localhost:3000 displays wallet connection, the SUI/DBUSDC order book, and a swap form in Vietnamese. The API returns `{"status":"ok"}` at http://localhost:3001/health. Wallet and market reads go directly to Sui; the web does not depend on the API for these flows.
 
 ## Common commands
 
@@ -100,14 +100,18 @@ Root development commands prepare shared before starting the applications, so no
 
 ## Environment
 
-| Application | Variable                          | Default                 |
-| ----------- | --------------------------------- | ----------------------- |
-| API         | `NODE_ENV`                        | `development`           |
-| API         | `HOST`                            | `127.0.0.1`             |
-| API         | `PORT`                            | `3001`                  |
-| API         | `DEFAULT_SUI_NETWORK`             | `testnet`               |
-| Web         | `NEXT_PUBLIC_API_URL`             | `http://localhost:3001` |
-| Web         | `NEXT_PUBLIC_DEFAULT_SUI_NETWORK` | `testnet`               |
+| Application | Variable                          | Default                            |
+| ----------- | --------------------------------- | ---------------------------------- |
+| API         | `NODE_ENV`                        | `development`                      |
+| API         | `HOST`                            | `127.0.0.1`                        |
+| API         | `PORT`                            | `3001`                             |
+| API         | `DEFAULT_SUI_NETWORK`             | `testnet`                          |
+| API         | `SUI_GRPC_URL`                    | Selected network's public fullnode |
+| API         | `SUI_GRPC_TIMEOUT_MS`             | `10000`                            |
+| Web         | `NEXT_PUBLIC_API_URL`             | `http://localhost:3001`            |
+| Web         | `NEXT_PUBLIC_DEFAULT_SUI_NETWORK` | `testnet`                          |
+| Web         | `NEXT_PUBLIC_SUI_GRPC_URL`        | Selected network's public fullnode |
+| Web         | `NEXT_PUBLIC_SUI_GRPC_TIMEOUT_MS` | `10000`                            |
 
 The API loads `apps/api/.env` through dotenv; process environment variables take precedence. Next.js uses its built-in `.env*` loading, with `apps/web/.env.local` recommended for local configuration. Both applications use Zod to report invalid variable names without printing configuration values.
 
@@ -117,17 +121,61 @@ Actual environment files are excluded from Git; only `.env.example` files are tr
 
 ## Blockchain direction and current configuration
 
-The approved MVP target is **Sui Testnet + DeepBookV3**. Wallet signing will use
-`@mysten/dapp-kit-react`; chain access will use `@mysten/sui` with a gRPC client; spot market
-integration will use `@mysten/deepbook-v3`. Sui/DeepBook remains the source of truth for assets,
+The approved MVP target is **Sui Testnet + DeepBookV3**. Wallet signing uses
+`@mysten/dapp-kit-react`; chain access uses `@mysten/sui` with a gRPC client; spot market
+integration uses `@mysten/deepbook-v3`. Sui/DeepBook remains the source of truth for assets,
 orders, fills, and settlement. The API may later cache or index public data but must not receive
 private keys or sign transactions for users.
 
 The shared registry in `packages/shared/src/sui-networks.ts` defines Sui Testnet and a
 transaction-disabled Mainnet entry. Testnet is the default and the only transaction-enabled MVP
 network. The API exposes this metadata through `GET /v1/networks`; web and API environment inputs
-use `NEXT_PUBLIC_DEFAULT_SUI_NETWORK` and `DEFAULT_SUI_NETWORK`. This configuration does not yet
-provide a live Sui client, wallet connection, or DeepBook trading flow.
+use `NEXT_PUBLIC_DEFAULT_SUI_NETWORK` and `DEFAULT_SUI_NETWORK`. Keep these two values aligned.
+
+The API creates a `SuiGrpcClient` for readiness; the web exports `createSuiClient` from
+`apps/web/src/lib/sui-client.ts` for future wallet and public-read integration. Both default to
+`https://fullnode.testnet.sui.io:443`, following the [official gRPC client guide](https://sdk.mystenlabs.com/sui/clients/grpc).
+Optional URL overrides must use HTTPS and apply to the selected default network. Timeouts must
+be integer milliseconds from 100 to 30000. Server provider credentials belong only in
+`SUI_GRPC_URL`; use a public, browser-compatible endpoint for `NEXT_PUBLIC_SUI_GRPC_URL`.
+The public network catalog never includes private server overrides.
+
+`GET /health` checks API liveness without contacting Sui. `GET /ready` reads node service info,
+verifies the reported network, and returns HTTP 200 with `status`, `network`, and a checkpoint
+string. A timeout/provider failure, wrong network, or incomplete response returns HTTP 503
+with a stable error code, without exposing provider details. Run `curl http://localhost:3001/ready`
+after starting the API to check connectivity. Public fullnodes may be rate-limited; provider
+fallback remains future work. Readiness does not verify DeepBook liquidity or wallet state.
+
+Mainnet remains transaction-disabled. The wallet UI and DeepBook builders only support Testnet;
+an app built with a Mainnet default displays a disabled notice instead of the trading interface.
+
+## Testnet wallet and swap flow
+
+1. Run `pnpm dev`, connect a Sui Wallet Standard wallet, and enable Sui Testnet in the wallet.
+2. Fund the wallet with Testnet SUI for gas and the desired input token. This flow uses SDK-defined
+   **DBUSDC** and **DEEP**, not similarly named coins or Mainnet USDC. The UI shows their full coin types.
+   The Sui faucet provides SUI; sourcing DBUSDC/DEEP test tokens remains an onboarding dependency.
+3. Select DBUSDC → SUI or SUI → DBUSDC, enter an amount, then request a quote and simulation.
+4. Review estimated output, minimum received, DEEP allocated to fees, simulated gas, and recipient.
+   Confirm explicitly to request the wallet signature. Unused swap coins return to the same wallet.
+5. Follow the digest on Testnet Explorer. A submitted transaction is only marked confirmed after
+   a chain lookup succeeds. The latest digest is stored locally for manual rechecking after reload.
+
+The allowlisted `SUI_DBUSDC` pool comes from SDK constants and is compared against the on-chain
+registry. Amounts, quote return values, fees, and minimum output use raw integers/BCS. Quotes expire
+after 30 seconds before signing, slippage choices are 0.1%/0.5%/1%, and the gas budget/reserve is
+0.1 SUI. The transaction enforces minimum output even if the wallet is left open beyond quote expiry.
+The order book is a timestamped snapshot with manual refresh; empty liquidity blocks unavailable quotes.
+On confirmation the SUI wallet balance and book refresh. Unknown send results are never retried automatically.
+If the wallet changes transaction bytes before submitting, consult its transaction history as well as
+the prepared digest shown after a transport failure. Browser storage is best effort; retain the Explorer link.
+
+Read-only smoke checks verified the Testnet pool and buy quote on 2026-10-05. Unit/component tests cover
+stale quotes, account changes, precision, gas/fee checks, duplicate signing, rejection, failure, unknown
+results, and digest recovery. Real wallet signing, browser visual QA, and complete signed execution
+remain unverified. Limit/post-only orders, BalanceManager, cancel, full history, and price-impact
+analytics are not part of this first swap implementation.
 
 ## Running a production build locally
 
@@ -164,6 +212,6 @@ API tests use Fastify injection without opening a real port. Web tests verify th
 The roadmap targets a non-custodial spot DEX on Sui Testnet: connect a Sui wallet, integrate
 DeepBook market data, then deliver market orders, limit orders, history, and Testnet hardening.
 Sui Mainnet and EVM/multi-chain require separate future decisions.
-Wallet connection, Sui RPC/gRPC clients, DeepBook trading, indexing, a database, Docker,
+Limit orders, BalanceManager, indexing, a database, Docker,
 deployment, and CI are not implemented yet. Follow [the development roadmap](docs/DOCS.md) for
 the accepted delivery order.
