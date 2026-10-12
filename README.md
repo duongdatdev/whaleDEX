@@ -152,6 +152,8 @@ an app built with a Mainnet default displays a disabled notice instead of the tr
 
 ## Testnet wallet and swap flow
 
+Provider/pool/token checks and reproducible commands: [WHA-6 Testnet verification](docs/testnet-verification.md).
+
 1. Run `pnpm dev`, connect a Sui Wallet Standard wallet, and enable Sui Testnet in the wallet.
 2. Fund the wallet with Testnet SUI for gas and the desired input token. This flow uses SDK-defined
    **DBUSDC** and **DEEP**, not similarly named coins or Mainnet USDC. The UI shows their full coin types.

@@ -9,7 +9,8 @@
     "start": "next start --port 3000",
     "lint": "eslint .",
     "typecheck": "next typegen && tsc --noEmit",
-    "test": "vitest run"
+    "test": "vitest run && node --test scripts/read-providers.test.mjs",
+    "verify:testnet": "node scripts/verify-testnet.mjs"
   },
   "dependencies": {
     "@mysten/dapp-kit-react": "2.1.38",
