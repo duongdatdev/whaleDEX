@@ -84,6 +84,17 @@ export function TradeDesk({ onConfirmed }: { onConfirmed: () => void }) {
     return () => clearInterval(timer);
   }, []);
   useEffect(() => {
+    let previousAccount = kit.stores.$connection.get().account;
+    return kit.stores.$connection.subscribe(({ account: nextAccount }) => {
+      if (nextAccount === previousAccount) return;
+      previousAccount = nextAccount;
+      // A return to the same address must not revive an old or in-flight quote.
+      request.current++;
+      setReview(undefined);
+      setMessage('');
+    });
+  }, [kit]);
+  useEffect(() => {
     let active = true;
     readMarket(client)
       .then((data) => {
@@ -140,6 +151,8 @@ export function TradeDesk({ onConfirmed }: { onConfirmed: () => void }) {
     setChecking(true);
     try {
       const result = await client.core.waitForTransaction({ digest: tx.digest, timeout: 20_000 });
+      const outcome = result.Transaction ?? result.FailedTransaction;
+      if (!outcome || outcome.digest !== tx.digest) throw new Error('Invalid transaction response');
       save({ ...tx, status: result.FailedTransaction ? 'failed' : 'confirmed' });
       if (!result.FailedTransaction) {
         onConfirmed();

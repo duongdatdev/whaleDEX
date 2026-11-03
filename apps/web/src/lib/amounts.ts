@@ -6,8 +6,8 @@ export function formatUnits(value: bigint, decimals: number): string {
 }
 
 export function parseUnits(value: string, decimals: number): bigint {
-  if (!/^\d+(\.\d+)?$/.test(value)) throw new Error('Nhập số lượng hợp lệ.');
-  const [whole, fraction = ''] = value.split('.');
+  if (!/^\d+([.,]\d+)?$/.test(value)) throw new Error('Nhập số lượng hợp lệ.');
+  const [whole, fraction = ''] = value.replace(',', '.').split('.');
   if (fraction.length > decimals) throw new Error(`Tối đa ${decimals} chữ số thập phân.`);
   const result = BigInt(`${whole}${fraction.padEnd(decimals, '0')}`);
   if (result <= 0n || result > 18446744073709551615n) throw new Error('Số lượng ngoài giới hạn.');
