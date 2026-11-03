@@ -1,6 +1,50 @@
-import { expect, it } from 'vitest';
+import { expect, it, vi } from 'vitest';
 import { buildApp } from './app.js';
-import { suiNetworksResponseSchema } from '@whaledex/shared';
+import { suiNetworksResponseSchema, suiReadinessSchema } from '@whaledex/shared';
+
+it('keeps liveness and public catalog independent of the upstream readiness check', async () => {
+  const checkSui = vi
+    .fn()
+    .mockResolvedValue({ status: 'unavailable', network: 'testnet', code: 'SUI_UNAVAILABLE' });
+  const app = buildApp(
+    {},
+    { defaultNetwork: 'testnet', grpcUrl: 'https://provider.example/private-key' },
+    { checkSui },
+  );
+  try {
+    expect((await app.inject('/health')).statusCode).toBe(200);
+    const catalog = await app.inject('/v1/networks');
+    expect(catalog.body).not.toContain('private-key');
+    expect(checkSui).not.toHaveBeenCalled();
+    const response = await app.inject('/ready');
+    expect(response.statusCode).toBe(503);
+    expect(response.headers['cache-control']).toBe('no-store');
+    expect(suiReadinessSchema.parse(response.json()).status).toBe('unavailable');
+  } finally {
+    await app.close();
+  }
+});
+
+it('reports ready only when the configured Sui read succeeds', async () => {
+  const app = buildApp(
+    {},
+    { defaultNetwork: 'testnet' },
+    {
+      checkSui: async () => ({ status: 'ok', network: 'testnet', checkpoint: '42' }),
+    },
+  );
+  try {
+    const response = await app.inject('/ready');
+    expect(response.statusCode).toBe(200);
+    expect(suiReadinessSchema.parse(response.json())).toEqual({
+      status: 'ok',
+      network: 'testnet',
+      checkpoint: '42',
+    });
+  } finally {
+    await app.close();
+  }
+});
 
 it('GET /health returns the public health contract', async () => {
   const app = buildApp();

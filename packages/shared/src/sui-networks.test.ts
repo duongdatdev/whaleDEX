@@ -6,9 +6,31 @@ import {
   suiNetworkEnvSchema,
   supportedSuiNetworkNames,
   supportedSuiNetworks,
+  resolveSuiConnection,
 } from './sui-networks.js';
 
 describe('Sui network configuration', () => {
+  it.each(supportedSuiNetworkNames)(
+    'resolves the endpoint for %s without using another network',
+    (network) => {
+      expect(resolveSuiConnection({ network })).toEqual({
+        network,
+        grpcUrl: getSuiNetwork(network).grpcUrls[0],
+        timeoutMs: 10000,
+      });
+    },
+  );
+
+  it('keeps a private endpoint override out of the public registry', () => {
+    const grpcUrl = 'https://provider.example/private-key';
+    expect(resolveSuiConnection({ network: 'testnet', grpcUrl, timeoutMs: 5000 })).toEqual({
+      network: 'testnet',
+      grpcUrl,
+      timeoutMs: 5000,
+    });
+    expect(JSON.stringify(supportedSuiNetworks)).not.toContain('private-key');
+    expect(() => resolveSuiConnection({ network: 'testnet', grpcUrl: '' })).toThrow();
+  });
   it('contains Testnet and a disabled Mainnet entry without duplicate names', () => {
     expect(supportedSuiNetworks.map((network) => network.network)).toEqual(['testnet', 'mainnet']);
     expect(new Set(supportedSuiNetworks.map((network) => network.network)).size).toBe(2);

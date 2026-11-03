@@ -4,7 +4,14 @@ import { parseEnv } from './env.js';
 
 config({ path: new URL('../.env', import.meta.url), quiet: true });
 const env = parseEnv(process.env);
-const app = buildApp({ logger: true }, { defaultNetwork: env.DEFAULT_SUI_NETWORK });
+const app = buildApp(
+  { logger: true },
+  {
+    defaultNetwork: env.DEFAULT_SUI_NETWORK,
+    grpcUrl: env.SUI_GRPC_URL,
+    timeoutMs: env.SUI_GRPC_TIMEOUT_MS,
+  },
+);
 
 async function shutdown(signal: string) {
   app.log.info({ signal }, 'Shutting down server');

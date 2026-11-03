@@ -12,14 +12,15 @@
     "test": "vitest run"
   },
   "dependencies": {
+    "@mysten/sui": "2.34.0",
     "@whaledex/shared": "workspace:*",
     "dotenv": "17.4.2",
     "fastify": "5.12.3",
     "zod": "4.5.4"
   },
   "devDependencies": {
-    "@whaledex/config": "workspace:*",
     "@types/node": "24.13.3",
+    "@whaledex/config": "workspace:*",
     "eslint": "10.10.0",
     "tsx": "4.23.13",
     "typescript": "6.0.3",
