@@ -84,9 +84,8 @@ The web app at http://localhost:3000 displays wallet connection, the SUI/DBUSDC 
 
 Use `main` as the shared baseline and create one branch per task. The welcome UI,
 wallet/swap implementation, and WHA-6 verification tools were integrated through
-[PR #6](https://github.com/duongdatdev/whaleDEX/pull/6). For the next iteration, use
-the owner branches, file boundaries, reviewers, and acceptance criteria in
-[the three-person assignment plan](docs/DOCS.md). Open all new pull requests against `main`.
+[PR #6](https://github.com/duongdatdev/whaleDEX/pull/6).
+Open all new pull requests against `main`.
 
 ```sh
 git fetch origin
