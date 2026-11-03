@@ -82,10 +82,11 @@ The web app at http://localhost:3000 displays wallet connection, the SUI/DBUSDC 
 
 ## Working together
 
-Use `main` as the shared baseline and create one branch per task. The integration branch
-`chore/integrate-testnet-ui` combines the welcome UI, wallet/swap implementation, and WHA-6
-verification tools; until its pull request is merged, dependent tasks can branch from it
-and target it in their pull requests. After integration, create new branches from updated `main`.
+Use `main` as the shared baseline and create one branch per task. The welcome UI,
+wallet/swap implementation, and WHA-6 verification tools were integrated through
+[PR #6](https://github.com/duongdatdev/whaleDEX/pull/6). For the next iteration, use
+the owner branches, file boundaries, reviewers, and acceptance criteria in
+[the three-person assignment plan](docs/DOCS.md). Open all new pull requests against `main`.
 
 ```sh
 git fetch origin
