@@ -13,7 +13,7 @@ Tài liệu này quy định thứ tự triển khai cho [PRD 3.0](prd-whaledex.
 
 ## 2. Trạng thái hiện tại
 
-Đã có monorepo, Sui gRPC/env, health/readiness/catalog API, kết nối ví Sui, số dư SUI, sổ lệnh SUI/DBUSDC và luồng swap DeepBook Testnet: quote → mô phỏng → review → yêu cầu ký → theo dõi digest. Pool và quote đã kiểm tra chỉ đọc trên Testnet ngày 2026-10-05; test tự động kiểm tra các trạng thái giao dịch. Chưa kiểm thử chữ ký/giao dịch end-to-end bằng ví thật và chưa kiểm tra trực quan trình duyệt. Limit order, BalanceManager, cancel và lịch sử đầy đủ chưa triển khai; MVP chưa đạt release gate.
+Đã có monorepo, Sui gRPC/env, health/readiness/catalog API, landing page tích hợp kết nối ví Sui, số dư SUI, sổ lệnh SUI/DBUSDC và luồng swap DeepBook Testnet: quote → mô phỏng → review → yêu cầu ký → theo dõi digest. Pool và quote đã kiểm tra lại chỉ đọc trên Testnet ngày 2026-11-03; xem [bằng chứng Testnet](testnet-verification.md). Test tự động kiểm tra các trạng thái giao dịch, vô hiệu quote khi đổi account và response xác nhận thiếu/sai digest. CI kiểm tra PR đã được cấu hình. Chưa kiểm thử chữ ký/giao dịch end-to-end bằng ví thật và chưa kiểm tra trực quan trình duyệt. Limit order, BalanceManager, cancel và lịch sử đầy đủ chưa triển khai; MVP chưa đạt release gate.
 
 ## 3. Kiến trúc mục tiêu
 
@@ -42,7 +42,7 @@ Ranh giới trách nhiệm:
 ### Giai đoạn 0 — Đồng bộ quyết định và baseline
 
 - [x] Ghi ADR-0003 và đồng bộ PRD, roadmap, README, Chapter 3.
-- [ ] Chạy đầy đủ baseline repository trước thay đổi code.
+- [x] Chạy baseline format/lint/typecheck/test/build khi tích hợp các nhánh ngày 2026-11-03.
 - [ ] Chốt tiêu chí nghiệm thu cho market đầu tiên và các dependency DEP-01..DEP-05.
 
 Nghiệm thu: không còn tài liệu hiện hành mô tả EVM/Sepolia là phạm vi mục tiêu; tài liệu lịch sử được đánh dấu rõ.

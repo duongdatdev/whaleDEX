@@ -72,6 +72,24 @@ Các request không phải snapshot atomic của cùng checkpoint. Lượt đầ
 Không có transaction được gửi. Package storage ID khác original ID là bình thường
 khi package được nâng cấp; script đối chiếu pool type với original ID on-chain.
 
+## Kiểm tra lại chỉ đọc ngày 03/11/2026
+
+Chạy `pnpm --filter @whaledex/web verify:testnet` không truyền địa chỉ ví lúc
+**08:12:50 UTC+7**. Provider đầu tiên trả kết quả thành công trong 2341 ms;
+checkpoint đầu lượt `402206454`. Các lần đọc không phải một snapshot atomic.
+
+- Network, package storage/original ID (version 20), registry, pool type và decimals
+  vẫn khớp bảng lịch sử ở trên.
+- SUI/DBUSDC có bid và ask; probe bán 2 SUI trả quote 1,998 DBUSDC,
+  probe mua bằng 2 DBUSDC trả quote 1,9 SUI và dư 0,0981 DBUSDC.
+- DEEP/SUI trả quote cả hai chiều: 20 DEEP → 0,4934 SUI;
+  2 SUI → 76 DEEP và dư 0,01336 SUI.
+- Tất cả là quote simulation; không ký, không gửi giao dịch và không xác minh số dư
+  hay việc nhận token của bất kỳ ví nào (`funding: wallet_not_supplied`).
+
+Quan sát này chỉ xác nhận có thanh khoản cho các probe tại thời điểm kiểm tra;
+không đóng các điều kiện nghiệm thu ví thật, funding hoặc provider dự phòng.
+
 ## Nhận token đúng loại
 
 1. Mở [Sui faucet](https://faucet.sui.io/?network=testnet), chọn **Testnet** và địa chỉ
@@ -101,7 +119,8 @@ khi package được nâng cấp; script đối chiếu pool type với original
 - DEP-01: public provider smoke đạt; bounded retry/timeout/fallback CLI có test.
   Còn quota/SLA và provider dự phòng thật trước beta.
 - DEP-02: SDK 2.6.4, package/registry/types/decimals/pools đã đối chiếu; chưa có
-  giao dịch ký nghiệm thu. SUI/DBUSDC thiếu bid nên chưa thể nghiệm thu hai chiều.
+  giao dịch ký nghiệm thu. SUI/DBUSDC thiếu bid trong lượt 12/10; lượt 03/11 có
+  quote hai chiều, nhưng vẫn chưa có giao dịch được ký để nghiệm thu.
 - DEP-03: xác minh nguồn và quy trình yêu cầu; **chưa nhận DBUSDC/DEEP** trong ví kiểm tra.
 
 WHA-6 chưa đủ điều kiện Done cho toàn bộ acceptance. Theo dõi receipt token,

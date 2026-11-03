@@ -80,6 +80,27 @@ pnpm dev
 
 The web app at http://localhost:3000 displays wallet connection, the SUI/DBUSDC order book, and a swap form in Vietnamese. The API returns `{"status":"ok"}` at http://localhost:3001/health. Wallet and market reads go directly to Sui; the web does not depend on the API for these flows.
 
+## Working together
+
+Use `main` as the shared baseline and create one branch per task. The integration branch
+`chore/integrate-testnet-ui` combines the welcome UI, wallet/swap implementation, and WHA-6
+verification tools; until its pull request is merged, dependent tasks can branch from it
+and target it in their pull requests. After integration, create new branches from updated `main`.
+
+```sh
+git fetch origin
+git switch main
+git pull --ff-only origin main
+git switch -c feat/your-task
+```
+
+Keep each verified change in an atomic Conventional Commit and open a pull request. Coordinate
+ownership before editing shared entry points such as `page.tsx`, `globals.css`, or shared contracts.
+CI runs formatting, lint, type checks, deterministic tests, and production builds on pull requests
+and pushes to `main`. Live Testnet verification remains a separate manual check; see
+[the verification guide](docs/testnet-verification.md). Require the `checks` job and a review in
+GitHub branch protection when adopting this workflow; the workflow file alone does not enforce merging rules.
+
 ## Common commands
 
 | Command from the root | Purpose                                           |
@@ -207,13 +228,13 @@ pnpm test
 pnpm build
 ```
 
-API tests use Fastify injection without opening a real port. Web tests verify the heading, shared tests validate the health contract, and environment tests cover invalid values and defaults.
+API tests use Fastify injection without opening a real port. Web tests cover navigation, wallet balance races, swap review, signature rejection, quote invalidation, confirmation, and reload recovery. Shared and environment tests validate public contracts and configuration. Tests use fixtures rather than requiring a live Sui provider.
 
 ## Future development
 
 The roadmap targets a non-custodial spot DEX on Sui Testnet: connect a Sui wallet, integrate
 DeepBook market data, then deliver market orders, limit orders, history, and Testnet hardening.
 Sui Mainnet and EVM/multi-chain require separate future decisions.
-Limit orders, BalanceManager, indexing, a database, Docker,
-deployment, and CI are not implemented yet. Follow [the development roadmap](docs/DOCS.md) for
-the accepted delivery order.
+Limit orders, BalanceManager, indexing, a database, Docker, and deployment are not implemented yet.
+Pull-request CI is configured in `.github/workflows/ci.yml`. Follow
+[the development roadmap](docs/DOCS.md) for the accepted delivery order.
