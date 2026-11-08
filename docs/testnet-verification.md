@@ -90,6 +90,26 @@ checkpoint đầu lượt `402206454`. Các lần đọc không phải một sna
 Quan sát này chỉ xác nhận có thanh khoản cho các probe tại thời điểm kiểm tra;
 không đóng các điều kiện nghiệm thu ví thật, funding hoặc provider dự phòng.
 
+## Kiểm tra lại chỉ đọc ngày 08/11/2026
+
+Chạy `pnpm --filter @whaledex/web verify:testnet` lúc **13:54:18 UTC**; checkpoint đầu
+lượt `404219133`. Provider mặc định thành công ngay lần thử đầu sau 2243 ms. Các lần đọc
+không phải snapshot atomic.
+
+- Network `testnet`; DeepBook package version 20, storage/original ID và registry khớp.
+- On-chain metadata: SUI 9 decimals, DBUSDC 6, DEEP 6.
+- SUI/DBUSDC: registry và object type khớp; best bid 0,999 (20,8 SUI), best ask
+  1,001 (13,9 SUI). Simulation bán 2 SUI trả 1,998 DBUSDC, phí 0,061651 DEEP;
+  mua bằng 2 DBUSDC trả 1,9 SUI, dư 0,0981 DBUSDC, phí 0,058686 DEEP.
+- DEEP/SUI: registry và object type khớp; best bid 0,02467, best ask 0,02614
+  SUI/DEEP. Simulation bán 20 DEEP trả 0,4934 SUI; mua bằng 2 SUI trả 76 DEEP,
+  dư 0,01024 SUI; phí DEEP bằng 0 ở hai probe.
+- `funding: wallet_not_supplied`: không có địa chỉ ví trong môi trường kiểm tra, nên
+  lượt này không đọc số dư ví. Không ký hoặc gửi giao dịch và không có digest.
+
+Đây là bằng chứng đọc metadata, pool và quote simulation tại checkpoint nêu trên;
+không thay thế kiểm tra kết nối ví, số dư của ví thật, ký/xác nhận giao dịch hoặc peer review.
+
 ## Nhận token đúng loại
 
 1. Mở [Sui faucet](https://faucet.sui.io/?network=testnet), chọn **Testnet** và địa chỉ
