@@ -223,7 +223,7 @@ it('rejects a mismatched pool returned by the on-chain registry', async () => {
   await expect(verifyMarket(client)).rejects.toThrow('Network hoặc pool');
 });
 
-it.each(['gas', 'fee'] as const)(
+it.each(['gas', 'fee', 'input'] as const)(
   'blocks insufficient %s before coin selection or signing',
   async (missing) => {
     const { client } = fixture();
@@ -235,7 +235,9 @@ it.each(['gas', 'fee'] as const)(
         balance:
           (missing === 'gas' && !coinType) || (missing === 'fee' && coinType === MARKET.fee.type)
             ? '0'
-            : '999999999999',
+            : missing === 'input' && coinType === MARKET.quote.type
+              ? '1999999'
+              : '999999999999',
       },
     }));
     await expect(
@@ -245,7 +247,7 @@ it.each(['gas', 'fee'] as const)(
         amount: 2000000n,
         expiresAt: Date.now() + 30000,
       }),
-    ).rejects.toThrow(missing === 'gas' ? 'Thiếu token' : 'Thiếu DEEP');
+    ).rejects.toThrow(missing === 'fee' ? 'Thiếu DEEP' : 'Thiếu token');
   },
 );
 

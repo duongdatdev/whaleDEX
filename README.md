@@ -194,11 +194,11 @@ On confirmation the SUI wallet balance and book refresh. Unknown send results ar
 If the wallet changes transaction bytes before submitting, consult its transaction history as well as
 the prepared digest shown after a transport failure. Browser storage is best effort; retain the Explorer link.
 
-Read-only smoke checks verified the Testnet pool and buy quote on 2026-10-05. Unit/component tests cover
-stale quotes, account changes, precision, gas/fee checks, duplicate signing, rejection, failure, unknown
-results, and digest recovery. Real wallet signing, browser visual QA, and complete signed execution
-remain unverified. Limit/post-only orders, BalanceManager, cancel, full history, and price-impact
-analytics are not part of this first swap implementation.
+Read-only smoke checks verified Testnet pools and quotes on 2026-11-08. Unit/component tests cover
+stale quotes, account changes, precision, gas/input/fee preflight, duplicate signing, rejection, failure,
+RPC outages, unknown results, and digest recovery; these use fixtures and do not prove real transactions.
+Real wallet signing, two-wallet execution, and browser visual QA remain unverified. Limit/post-only orders,
+BalanceManager, cancel, and full history are not part of this first swap implementation.
 
 ## Running a production build locally
 

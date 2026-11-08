@@ -298,6 +298,17 @@ it('keeps an unknown send result and digest without resubmitting', async () => {
   expect(screen.getByText('Lấy quote & mô phỏng')).toBeDisabled();
   expect(mocks.sign).toHaveBeenCalledOnce();
 });
+it('keeps the submitted digest unknown when the RPC lookup is unavailable', async () => {
+  mocks.wait.mockRejectedValueOnce(new Error('RPC unavailable'));
+  render(<TradeDesk onConfirmed={vi.fn()} />);
+  await preview();
+  fireEvent.click(screen.getByText('Xác nhận & ký trong ví'));
+
+  await screen.findByText(/Chưa xác định kết quả/);
+  expect(localStorage.getItem('whaledex:testnet:last-swap')).toContain(digest);
+  expect(mocks.sign).toHaveBeenCalledOnce();
+  expect(screen.getByText('Lấy quote & mô phỏng')).toBeDisabled();
+});
 it('reports explicit wallet rejection and failed on-chain transactions distinctly', async () => {
   mocks.sign.mockRejectedValue({ code: 4001 });
   render(<TradeDesk onConfirmed={vi.fn()} />);
@@ -310,13 +321,28 @@ it('reports explicit wallet rejection and failed on-chain transactions distinctl
   fireEvent.click(screen.getByText('Xác nhận & ký trong ví'));
   await screen.findByText('Giao dịch thất bại on-chain');
 });
-it('blocks an underfunded transaction during preflight before signing', async () => {
-  mocks.prepare.mockRejectedValue(new Error('Thiếu DEEP Testnet để trả phí giao dịch.'));
+it.each([
+  ['gas', 'Thiếu token đầu vào hoặc SUI dự phòng gas (0,1 SUI).'],
+  ['input', 'Thiếu token đầu vào hoặc SUI dự phòng gas (0,1 SUI).'],
+  ['DEEP fee', 'Thiếu DEEP Testnet để trả phí giao dịch.'],
+])('blocks a transaction with insufficient %s during preflight', async (_missing, message) => {
+  mocks.prepare.mockRejectedValue(new Error(message));
   render(<TradeDesk onConfirmed={vi.fn()} />);
   fireEvent.change(screen.getByLabelText('Số lượng DBUSDC'), { target: { value: '2' } });
   fireEvent.click(screen.getByText('Lấy quote & mô phỏng'));
-  await screen.findByText('Thiếu DEEP Testnet để trả phí giao dịch.');
+  await screen.findByText(message);
   expect(mocks.prepare).toHaveBeenCalledOnce();
+  expect(mocks.sign).not.toHaveBeenCalled();
+});
+it('fails closed and hides RPC endpoint details when preflight reads fail', async () => {
+  mocks.quote.mockRejectedValue(new Error('https://rpc.testnet.sui.io request failed'));
+  render(<TradeDesk onConfirmed={vi.fn()} />);
+  fireEvent.change(screen.getByLabelText('Số lượng DBUSDC'), { target: { value: '2' } });
+  fireEvent.click(screen.getByText('Lấy quote & mô phỏng'));
+
+  await screen.findByText('Không thể chuẩn bị giao dịch. Kiểm tra kết nối và thử lại.');
+  expect(screen.queryByText(/https?:\/\//)).not.toBeInTheDocument();
+  expect(mocks.prepare).not.toHaveBeenCalled();
   expect(mocks.sign).not.toHaveBeenCalled();
 });
 it('blocks signing when the order book cannot provide a price impact reference', async () => {

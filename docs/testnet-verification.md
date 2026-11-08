@@ -110,6 +110,34 @@ không phải snapshot atomic.
 Đây là bằng chứng đọc metadata, pool và quote simulation tại checkpoint nêu trên;
 không thay thế kiểm tra kết nối ví, số dư của ví thật, ký/xác nhận giao dịch hoặc peer review.
 
+## WHA-10 — kiểm thử swap đã ký bằng ví thật
+
+Trạng thái: **In Progress**. Các test tự động của web dùng fixture/mock, còn lệnh
+`verify:testnet` chỉ đọc và mô phỏng quote; cả hai không chứng minh wallet signature hay
+transaction đã xác nhận. Lượt kiểm tra hiện tại không có `SUI_TESTNET_ADDRESS` và không
+có phiên ví Testnet đang mở để chạy demo. Chưa có digest, ảnh chụp balance trước/sau hoặc
+peer review nên chưa đủ điều kiện Done.
+
+Lượt đọc bổ sung lúc **15:31:27 UTC ngày 08/11/2026**, checkpoint `404242843`: SUI/DBUSDC
+có bid `0,999` và ask `1,001`; probe bán 2 SUI quote 1,998 DBUSDC, probe mua 2 DBUSDC
+quote 1,9 SUI. Cả hai đều là simulation (`quoted`), còn `funding` là
+`wallet_not_supplied`; lượt này không đọc balance, ký hoặc gửi transaction.
+
+Để hoàn tất WHA-10, chạy production build và ghi bằng chứng riêng cho tối thiểu hai ví Sui
+Testnet, trên trình duyệt và phiên bản wallet đã ghi nhận:
+
+| Kịch bản                                               | Ví A      | Ví B      | Bằng chứng cần lưu                                                    |
+| ------------------------------------------------------ | --------- | --------- | --------------------------------------------------------------------- |
+| Connect, kiểm tra network/coin type và số dư trước     | Chưa chạy | Chưa chạy | Tên wallet, browser/version, thời gian và số dư SUI/DBUSDC/DEEP       |
+| Buy DBUSDC → SUI, ký và đợi xác nhận                   | Chưa chạy | Chưa chạy | Ảnh review, digest/Explorer, số dư sau                                |
+| Sell SUI → DBUSDC, ký và đợi xác nhận khi có liquidity | Chưa chạy | Chưa chạy | Ảnh review, digest/Explorer, số dư sau                                |
+| Từ chối ký; thiếu gas, input hoặc DEEP                 | Chưa chạy | Chưa chạy | Kết quả UI, xác nhận không phát sinh digest mới                       |
+| RPC outage và reload trạng thái unknown                | Chưa chạy | Chưa chạy | Digest được giữ lại, app không tự gửi lại, trạng thái sau khi tra cứu |
+
+Không lưu seed phrase, private key, session token hoặc thông tin đăng nhập. Không coi quote
+simulation hay test mock là giao dịch thật. Nếu pool thiếu thanh khoản hoặc ví thiếu token,
+ghi rõ blocker và giữ task In Progress; không đổi coin/pool để tạo bằng chứng thay thế.
+
 ## Nhận token đúng loại
 
 1. Mở [Sui faucet](https://faucet.sui.io/?network=testnet), chọn **Testnet** và địa chỉ
