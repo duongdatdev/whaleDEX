@@ -4,17 +4,44 @@
     "build": {
       "dependsOn": ["^build"],
       "inputs": ["$TURBO_DEFAULT$", ".env", ".env.*"],
-      "env": ["NODE_ENV", "NEXT_PUBLIC_API_URL"],
+      "env": [
+        "NODE_ENV",
+        "NEXT_PUBLIC_API_URL",
+        "NEXT_PUBLIC_DEFAULT_SUI_NETWORK",
+        "DEFAULT_SUI_NETWORK",
+        "SUI_GRPC_URL",
+        "SUI_GRPC_TIMEOUT_MS",
+        "NEXT_PUBLIC_SUI_GRPC_URL",
+        "NEXT_PUBLIC_SUI_GRPC_TIMEOUT_MS"
+      ],
       "outputs": ["dist/**", ".next/**", "!.next/cache/**"]
     },
     "dev": {
       "dependsOn": ["^build"],
       "cache": false,
       "persistent": true,
-      "env": ["NODE_ENV", "HOST", "PORT", "NEXT_PUBLIC_API_URL"]
+      "env": [
+        "NODE_ENV",
+        "HOST",
+        "PORT",
+        "NEXT_PUBLIC_API_URL",
+        "NEXT_PUBLIC_DEFAULT_SUI_NETWORK",
+        "DEFAULT_SUI_NETWORK",
+        "SUI_GRPC_URL",
+        "SUI_GRPC_TIMEOUT_MS",
+        "NEXT_PUBLIC_SUI_GRPC_URL",
+        "NEXT_PUBLIC_SUI_GRPC_TIMEOUT_MS"
+      ]
     },
-    "lint": { "dependsOn": ["^build"] },
-    "typecheck": { "dependsOn": ["^build"] },
-    "test": { "dependsOn": ["^build"], "outputs": [] }
+    "lint": {
+      "dependsOn": ["^build"]
+    },
+    "typecheck": {
+      "dependsOn": ["^build"]
+    },
+    "test": {
+      "dependsOn": ["^build"],
+      "outputs": []
+    }
   }
 }

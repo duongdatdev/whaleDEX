@@ -1,242 +1,158 @@
-# Practical Lab 3 — From Evidence to a Testable Feature Specification
+# Practical Lab 3 — From Evidence to a Testable Sui Trading Specification
 
 ## Lab objective
 
-Use AI to analyse the existing WhaleDEX repository and produce a reviewable requirements slice for “review a swap quote”. The exercise demonstrates the full chain:
+Use AI to analyze the WhaleDEX repository and produce a reviewable requirements slice for “review a DeepBook market order”. The exercise follows this chain:
 
 ```text
-repository evidence -> discovery hypothesis -> PRD goal -> requirement -> story -> acceptance test -> release evidence
+repository evidence → discovery hypothesis → PRD goal → requirement → acceptance test → release evidence
 ```
 
-Recommended duration: 90–120 minutes. Work in pairs where possible: one learner operates the AI assistant and one challenges evidence and acceptance criteria; swap roles halfway.
+Recommended duration: 90–120 minutes. Work in pairs when possible: one learner operates the AI assistant while the other challenges evidence and acceptance criteria.
+
+## Current scope
+
+Use [ADR-0003](../adr/0003-sui-deepbook-mvp.md) and the [product PRD](../prd-whaledex.md). The target is Sui Testnet + DeepBookV3. Sui network metadata and validation are implemented; the live client, wallet and trading integration are not. Lab execution uses fixtures, local tests or token-only Testnet activity—never real funds.
 
 ## Rules
 
-- Do not use real funds, private keys, seed phrases, production credentials, or personal interview data.
-- Use the repository and approved stakeholder notes as evidence.
+- Do not use real funds, private keys, seed phrases, production credentials or personal interview data.
+- Treat code, schemas and tests as implementation evidence; treat roadmap text as proposed behavior.
 - Mark unsupported statements as assumptions or questions.
-- Do not ask AI to select a chain, contract, or provider without human verification.
-- Keep an audit note containing input sources, prompt, output, edits, reviewer, and date.
+- Do not invent package IDs, pool IDs, coin types, liquidity or SDK behavior.
+- Keep an audit note with input sources, prompt, output, edits, reviewer and date.
 
 ## Part A — Inspect before proposing
 
-### Task
+Complete this table:
 
-Inspect the repository and complete this table:
+| Question                                      | Evidence path                         | Answer |
+| --------------------------------------------- | ------------------------------------- | ------ |
+| What can the frontend do today?               | `apps/web/src/app/page.tsx` and tests |        |
+| What can the API do today?                    | `apps/api/src/app.ts` and tests       |        |
+| Which shared schemas exist?                   | `packages/shared/src/`                |        |
+| Which current configs conflict with ADR-0003? | chain/env source and tests            |        |
+| Which dependencies block the first market?    | `docs/prd-whaledex.md`                |        |
 
-| Question                                          | Evidence path                         | Answer |
-| ------------------------------------------------- | ------------------------------------- | ------ |
-| What can the frontend do today?                   | `apps/web/src/app/page.tsx` and tests |        |
-| What can the API do today?                        | `apps/api/src/app.ts` and tests       |        |
-| Which shared contracts exist?                     | `packages/shared/src/`                |        |
-| Which trading capabilities are explicitly absent? | `README.md`                           |        |
-| Which decisions block blockchain work?            | `docs/DOCS.md`                        |        |
-
-### Example AI prompt
+Example prompt:
 
 ```text
-Analyse only the supplied repository excerpts. Return a table with:
-Capability, Status (implemented/proposed/absent), Evidence path, Confidence.
-Do not infer implementation from roadmap text. List contradictions and missing evidence.
+Analyze only the supplied repository excerpts. Return Capability, Status
+(implemented/proposed/absent/legacy), Evidence path and Confidence. Do not infer
+Sui support from documentation. List contradictions and missing evidence.
 ```
 
-### Illustrative answer
-
-| Capability              | Status      | Evidence                                                     | Confidence |
-| ----------------------- | ----------- | ------------------------------------------------------------ | ---------- |
-| Static web landing page | Implemented | `apps/web/src/app/page.tsx`                                  | High       |
-| API process health      | Implemented | `GET /health` in `apps/api/src/app.ts`                       | High       |
-| Wallet connection       | Absent      | README future-development statement; no wallet feature files | High       |
-| Quote/swap              | Proposed    | Roadmap phases 4–5                                           | High       |
-| Target user validated   | No evidence | No research artefact in repository                           | High       |
+Expected distinction: the TypeScript monorepo, health API and Sui network catalog are implemented; Sui wallet, DeepBook market data and trading are proposed.
 
 ## Part B — Discovery synthesis
 
-### Input cards
+Treat these as fictional workshop observations, not real research:
 
-Treat the following as fictional workshop observations, not real user research:
-
-- `OBS-01`: Three of five participants thought token approval executed the swap.
-- `OBS-02`: Four of five looked for network name before signing.
+- `OBS-01`: Three of five participants confused wallet balance with trading-account balance.
+- `OBS-02`: Four of five looked for the network before signing.
 - `OBS-03`: Two participants treated “submitted” as final success.
-- `OBS-04`: Four participants wanted to see the least they could receive.
-- `OBS-05`: One advanced participant requested split routing; no other participant needed it.
+- `OBS-04`: Four participants wanted to see the worst acceptable execution price.
+- `OBS-05`: One advanced participant requested margin trading.
 
-### Task
+Produce one problem hypothesis, up to three opportunities, one counter-hypothesis, three non-leading interview questions and a recommendation about margin scope. Every statement must retain observation IDs and separate observation from interpretation.
 
-Ask AI to cluster the observations, but require it to keep observation IDs attached. Produce:
+## Part C — Challenge a requirement
 
-1. one problem hypothesis;
-2. up to three opportunities;
-3. one counter-hypothesis;
-4. questions for the next interview;
-5. a recommendation about split routing.
+Bad requirement:
 
-### Example prompt
+> The application should use AI to instantly find the safest price for every Sui coin.
 
-```text
-Cluster OBS-01..OBS-05. Every theme and recommendation must cite observation IDs.
-Separate observed facts from interpretation. Generate one counter-hypothesis and
-three non-leading follow-up questions. Do not generalise beyond this small sample.
-```
+Identify defects, including unjustified AI use, unmeasurable “instantly/safest”, arbitrary-coin conflict, missing market identity, amount, side, freshness, price limit, fee and failure handling.
 
-### Illustrative answer excerpt
+Improved requirements:
 
-- Observation: approval and swap were confused (`OBS-01`). Interpretation: the two-step permission model needs clearer presentation.
-- Observation: participants checked network and minimum output (`OBS-02`, `OBS-04`). Opportunity: place execution context beside the confirmation action.
-- Counter-hypothesis: the confusion may come from the prototype copy rather than the underlying two-step flow.
-- Split routing should remain outside the first slice: demand appears once in a five-person formative sample (`OBS-05`), which is insufficient evidence for P0 complexity.
+> FR-BOOK-01: Display the current DeepBook order book and best bid/ask with source freshness; unavailable or stale data must remain explicitly unavailable or stale.
 
-## Part C — Draft and challenge a requirement
+> FR-ORDER-02: Before requesting a market-order signature, use the current account/network/market/amount context to preflight execution and enforce the reviewed price limit; invalidate stale results.
 
-### Bad AI-generated requirement
+Use an AI red-team prompt to list ambiguity, boundary cases, security assumptions, dependencies and verification methods before rewriting requirements.
 
-> The application should use AI to instantly find the best and safest swap price for every token.
+## Part D — Story and acceptance tests
 
-### Task
+Story:
 
-Identify at least eight defects. A strong review finds:
+> As a Sui Testnet trader, I want to review a current market order and its execution boundary so that I can decide whether to sign it.
 
-- “should” does not establish a firm baseline;
-- “AI” is an unjustified implementation choice;
-- “instantly” is not measurable;
-- “best” lacks a route/provider comparison set and objective;
-- “safest” lacks a defined risk model;
-- “every token” conflicts with the proposed allowlist;
-- chain, amount, account, slippage, freshness, expiry, and failures are missing;
-- output and verification method are undefined;
-- the selected protocol may provide only one route;
-- no source evidence supports the claim.
+Write Given/When/Then scenarios for at least:
 
-### Improved requirement
+1. valid current order preview;
+2. invalid amount;
+3. amount not aligned to lot size;
+4. stale order book/preflight;
+5. old response arriving after new input;
+6. account change;
+7. network mismatch;
+8. insufficient asset balance;
+9. insufficient SUI gas reserve;
+10. wallet rejection;
+11. submitted digest timing out before a known result;
+12. keyboard and screen-reader status behavior.
 
-> `FR-QUOTE-02`: For a quote bound to the current chain, account, supported token pair, input amount, slippage, route, and deployment context, WhaleDEX shall display expected output, minimum received, route, applicable fees, source freshness, expiry, and gas estimate when available. If the quote expires or its bound context changes, WhaleDEX shall disable transaction confirmation until a current quote is available.
-
-### AI red-team prompt
-
-```text
-Act as a requirements reviewer. Do not rewrite immediately.
-For the requirement below, list ambiguity, missing boundary cases, conflicting goals,
-security assumptions, dependencies, and ways to verify it. Label each finding as
-blocking or non-blocking. Then propose the smallest corrected wording.
-```
-
-## Part D — Convert to a story and tests
-
-### Story
-
-> As a testnet user, I want to review a current quote and its execution boundaries so that I can decide whether to continue to approval or swap.
-
-### Learner task
-
-Write Given/When/Then criteria for:
-
-1. a valid current quote;
-2. input validation;
-3. quote expiry;
-4. an out-of-order response;
-5. account or chain change;
-6. provider timeout;
-7. missing gas estimate;
-8. keyboard and screen-reader behaviour.
-
-### Illustrative tests
+Example:
 
 ```gherkin
-Scenario: Older response arrives last
-  Given request A exists for input amount "1000000"
-  And request B exists for the current input amount "2000000"
+Scenario: Older preflight response arrives last
+  Given request A exists for amount "1000000"
+  And request B exists for the current amount "2000000"
   When response B arrives and is displayed
   And response A arrives afterward
-  Then the displayed quote still belongs to request B
-  And the confirmation action remains bound to request B
+  Then the displayed review still belongs to request B
+  And signing remains bound to request B
 
-Scenario: Account changes while quote is displayed
-  Given a current quote is displayed for account A
+Scenario: Account changes while review is displayed
+  Given a current review is displayed for account A
   When the wallet reports account B
-  Then the quote and account-derived allowance are invalidated
-  And transaction confirmation is disabled
+  Then the review and account-derived balances are invalidated
+  And signing is disabled until a new preflight succeeds
 
-Scenario: Optional gas estimate is unavailable
-  Given a current quote is otherwise valid
-  When the provider cannot supply a gas estimate
-  Then the interface labels the estimate as unavailable
-  And the product applies its approved policy on whether the user may continue
+Scenario: Submission outcome is unknown
+  Given the wallet returned a transaction digest
+  When the status provider times out
+  Then the application keeps the transaction in unknown or pending state
+  And it does not submit a duplicate transaction automatically
+  And it provides the Testnet Explorer link when the digest is available
 ```
 
-Notice that the last criterion exposes a product decision rather than inventing one.
+## Part E — Traceability
 
-## Part E — Build traceability
+Add the story/tests to [traceability-matrix.md](traceability-matrix.md). Each row must contain source goal, requirement ID, acceptance evidence, component and current status. Audit for orphan goals, requirements without tests, stale IDs and claims unsupported by source.
 
-Add the story and tests to [`traceability-matrix.md`](traceability-matrix.md). Each row must contain:
+## Part F — Change impact
 
-- evidence or approved business goal;
-- requirement ID;
-- story ID;
-- acceptance scenario/test;
-- implementation owner or component;
-- current status.
+Stakeholder request:
 
-Then use AI for a consistency audit:
+> “Let users import any Sui coin in the MVP.”
 
-```text
-Compare the PRD, user stories, feature specification, and traceability matrix.
-Report orphan goals, requirements without tests, tests without requirements,
-conflicting priorities, undefined terms, and stale IDs. Cite document and heading.
-Do not add missing decisions; place them in an open-question list.
-```
+Analyze impact on allowlists, spoofed symbols, coin type verification, decimals, unsupported DeepBook pools, UX warnings, tests and schedule. The outcome is not automatically accept/reject; record a product decision after evidence and risk review.
 
-## Part F — Change-impact exercise
+Additional context-change exercise:
 
-Stakeholder change request:
-
-> “Let users import any ERC-20 token in the MVP.”
-
-### Expected impact analysis
-
-| Area          | Impact                                                                                                            |
-| ------------- | ----------------------------------------------------------------------------------------------------------------- |
-| Product scope | Conflicts with the verified allowlist and non-goal                                                                |
-| Discovery     | Requires evidence that arbitrary-token import is a P0 user need                                                   |
-| Security      | Adds spoofed symbols, malicious/non-standard token behaviour, and scam-token risks                                |
-| UX            | Needs address entry, verification cues, warnings, and duplicate-symbol handling                                   |
-| Data          | Needs metadata fallback and explicit decimals policy                                                              |
-| Testing       | Adds missing/invalid metadata, fee-on-transfer, rebasing, and malicious-token cases according to supported policy |
-| Schedule      | Expands design, threat modelling, implementation, and test scope                                                  |
-
-The correct outcome is not automatically “accept” or “reject”. The product owner records a decision after evidence, risk, effort, and release goal are reviewed.
+A market-order preflight is pending when the wallet account changes. Explain why the old response cannot populate the new form, why any already-submitted digest remains tied to the original sender, and why missing market/provider data must be unavailable rather than fabricated.
 
 ## Deliverables
 
-Submit:
-
-1. completed evidence table;
-2. discovery synthesis with observation IDs;
-3. defect review and corrected requirement;
-4. story plus at least eight acceptance scenarios;
-5. updated traceability rows;
-6. change-impact analysis;
-7. a short AI audit note describing what was accepted, edited, or rejected and why.
+1. Completed evidence table.
+2. Discovery synthesis retaining observation IDs.
+3. Defect review and corrected requirements.
+4. Story with at least twelve acceptance scenarios.
+5. Updated traceability rows.
+6. Change-impact analysis.
+7. Short AI audit note describing accepted, edited and rejected suggestions.
 
 ## Assessment rubric
 
-| Criterion               | Weight | Excellent evidence                                                      |
-| ----------------------- | -----: | ----------------------------------------------------------------------- |
-| Evidence discipline     |    20% | Facts, assumptions, and suggestions are clearly separated and sourced   |
-| Requirement quality     |    20% | Atomic, unambiguous, feasible, bounded, and verifiable wording          |
-| Acceptance coverage     |    20% | Happy, negative, async race, recovery, and accessibility paths          |
-| Traceability            |    15% | No orphan P0 goal, requirement, story, or test                          |
-| Risk/change analysis    |    15% | Asset-safety, data, UX, dependency, and schedule impacts identified     |
-| Responsible AI practice |    10% | Sensitive data excluded; output challenged and human decisions recorded |
+| Criterion               | Weight |
+| ----------------------- | -----: |
+| Evidence discipline     |    20% |
+| Requirement quality     |    20% |
+| Acceptance coverage     |    20% |
+| Traceability            |    15% |
+| Risk/change analysis    |    15% |
+| Responsible AI practice |    10% |
 
 Suggested passing threshold: 70%, with no zero score in evidence discipline or requirement quality.
-
-## Facilitator debrief
-
-Ask learners:
-
-- Which AI suggestion sounded plausible but lacked evidence?
-- Which acceptance criterion forced a product decision into the open?
-- Which repository fact changed the proposed scope?
-- How would the artefacts differ for a custom AMM?
-- What would have to be true before this package could authorize mainnet work?

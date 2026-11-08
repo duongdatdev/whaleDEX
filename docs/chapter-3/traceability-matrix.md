@@ -1,47 +1,43 @@
-# WhaleDEX MVP Requirements Traceability Matrix
+# WhaleDEX Sui Requirements Traceability Matrix
 
-This matrix links intent to verification. `Proposed` means the requirement is documented but not implemented. Update status and evidence links in the pull request that implements each slice.
+Canonical definitions: [product PRD](../prd-whaledex.md). Learning summary: [MVP PRD](whaledex-mvp-prd.md). Scope: Sui Testnet spot trading through DeepBookV3.
 
-| Goal/source          | Requirement    | Story                      | Acceptance/test evidence                                   | Component/owner           | Status                     |
-| -------------------- | -------------- | -------------------------- | ---------------------------------------------------------- | ------------------------- | -------------------------- |
-| G-01, H-01           | FR-WALLET-01   | US-WALLET-01               | Connect success; rejection                                 | Web/wallet                | Proposed                   |
-| G-01                 | FR-WALLET-02   | US-WALLET-01               | Account change invalidates prior context                   | Web/wallet                | Proposed                   |
-| G-02, OBS-02         | FR-NETWORK-01  | US-WALLET-01               | Unsupported network blocks transaction path                | Web/wallet                | Proposed                   |
-| G-02                 | FR-TOKEN-01    | US-QUOTE-01                | Duplicate symbols remain distinguishable by address        | Web/token selector        | Proposed                   |
-| G-01                 | FR-BALANCE-01  | US-WALLET-01               | Balance refreshes for active chain/account                 | Web/RPC adapter           | Proposed                   |
-| G-01                 | FR-INPUT-01    | US-QUOTE-01                | Invalid/over-precision/above-balance table tests           | Web/swap form             | Proposed                   |
-| G-01, H-02           | FR-QUOTE-01    | US-QUOTE-01                | Superseded response cannot replace current quote           | Web/quote client          | Proposed                   |
-| G-02, H-02           | FR-QUOTE-02    | US-QUOTE-01                | Current quote fields display; optional values labelled     | Web/quote panel           | Proposed                   |
-| G-02                 | FR-QUOTE-03    | US-QUOTE-01                | Expiry and context-change scenarios                        | Web/quote client          | Proposed                   |
-| G-02, H-01           | FR-APPROVAL-01 | US-APPROVAL-01             | Insufficient allowance exposes separate approval           | Web + chain adapter       | Proposed                   |
-| G-02, H-01           | FR-APPROVAL-02 | US-APPROVAL-01             | Spender disclosure; reread allowance; refresh quote        | Web + chain adapter       | Proposed                   |
-| G-01, G-02           | FR-SWAP-01     | US-SWAP-01                 | Context validation and failed-simulation integration tests | Web + protocol adapter    | Proposed                   |
-| G-01, OBS-03         | FR-TX-01       | US-SWAP-01                 | Submitted/confirmed/failed/replaced state tests            | Web/transaction tracker   | Proposed                   |
-| G-01, H-04           | FR-TX-02       | US-SWAP-01                 | Refresh restores chain/account/hash tracking               | Web/local persistence     | Proposed                   |
-| G-01                 | FR-TX-03       | US-SWAP-01                 | Final receipt refreshes derived state                      | Web/data clients          | Proposed                   |
-| G-02                 | FR-EXPLORER-01 | US-SWAP-01                 | Explorer URL allowlist/configuration test                  | Web/chain config          | Proposed                   |
-| Asset-safety policy  | NFR-SEC-01     | All                        | Threat review; API/log/storage inspection                  | Security + all components | Proposed                   |
-| DEP-01..03           | NFR-SEC-02     | US-APPROVAL-01, US-SWAP-01 | Invalid chain/target/spender negative tests                | Shared config + adapters  | Blocked by decision        |
-| Data convention      | NFR-DATA-01    | US-QUOTE-01, US-SWAP-01    | Schema and large-value/rounding boundary tests             | Shared + API + web        | Proposed                   |
-| Accessibility policy | NFR-A11Y-01    | All UI stories             | Keyboard, focus, labels, live-region review                | Design + web + QA         | Proposed                   |
-| Async correctness    | NFR-REL-01     | US-WALLET-01, US-QUOTE-01  | Account/chain/input race-condition tests                   | Web                       | Proposed                   |
-| Operations policy    | NFR-OBS-01     | All                        | Stable error contract and redacted-log inspection          | API + web + operations    | Proposed                   |
-| DEP-06               | NFR-COMPAT-01  | US-WALLET-01               | Approved browser/wallet matrix results                     | QA                        | Blocked by decision        |
-| G-03                 | NFR-PERF-01    | US-QUOTE-01                | Staging percentile baseline/report                         | Engineering + product     | Blocked by provider choice |
+`Implemented` requires source and test evidence. `Planned` describes future acceptance tests, not passing tests. `Partial` means an enabling foundation exists while runtime behavior is missing.
+
+| Goal/source  | Requirement   | Acceptance evidence                                                                | Component           | Current status                     |
+| ------------ | ------------- | ---------------------------------------------------------------------------------- | ------------------- | ---------------------------------- |
+| G-01, G-03   | FR-NETWORK-01 | Testnet config/catalog tests pass; wallet network guard remains unimplemented      | Shared/API/web      | Partial                            |
+| G-01, G-04   | FR-WALLET-01  | Connect/disconnect/reject flows work without API receiving secrets                 | Web                 | Planned                            |
+| G-01         | FR-WALLET-02  | Account/network change invalidates derived state; submitted digest remains tracked | Web                 | Planned                            |
+| G-01, DEP-02 | FR-MARKET-01  | Unknown coin type/pool/package is rejected; verified market metadata renders       | Shared/adapter      | Planned                            |
+| G-01         | FR-BALANCE-01 | Decimals and wallet/trading balances reconcile with chain reads                    | Adapter/web         | Planned                            |
+| G-01, G-03   | FR-BOOK-01    | Fresh bid/ask renders; empty, stale and provider-error states remain distinct      | Adapter/web         | Planned                            |
+| G-01, G-02   | FR-ORDER-01   | Invalid side/type/amount/price/tick/lot/balance/gas is blocked                     | Shared/web          | Planned                            |
+| G-01         | FR-ORDER-02   | Current market-order preflight succeeds; stale quote/limit blocks signing          | Adapter/web         | Planned                            |
+| G-02         | FR-ORDER-03   | Limit/post-only review shows price, quantity, availability and fees                | Adapter/web         | Planned                            |
+| G-02         | FR-ORDER-04   | Create, partial-fill display and cancel reconcile with on-chain order state        | Adapter/web         | Planned                            |
+| G-02         | FR-ASSET-01   | Deposit/withdraw review and owner signature reconcile balances                     | Adapter/web         | Planned if BalanceManager required |
+| G-01, G-03   | FR-TX-01      | Awaiting-signature/submitted/confirmed/failed/rejected/unknown transitions tested  | Web                 | Planned                            |
+| G-01         | FR-TX-02      | Reload restores digest watcher and Explorer link for original network              | Web/storage         | Planned                            |
+| G-03         | FR-HISTORY-01 | Cursor, source and freshness are explicit; indexer outage has bounded impact       | API/web             | Planned for beta                   |
+| G-03         | FR-PRICE-01   | DeepBook execution price and optional oracle reference are labeled separately      | Adapter/web         | Planned for beta                   |
+| G-04         | NFR-SEC-01    | API/log/storage review finds no seed, private key or signing secret                | All/security        | Planned release review             |
+| G-04, DEP-02 | NFR-SEC-02    | Invalid network/package/pool/coin negative tests pass                              | Shared/adapter      | Planned                            |
+| G-01, G-02   | NFR-DATA-01   | Decimal, integer, rounding, tick and lot boundary tests pass                       | Shared/adapter      | Planned                            |
+| G-01, G-05   | NFR-REL-01    | Async race, bounded read retry and no blind write retry tests pass                 | Web/adapter         | Planned                            |
+| G-03         | NFR-A11Y-01   | Keyboard/focus/label/live-status review passes on actual trading UI                | Web/QA              | Planned                            |
+| G-05         | NFR-OBS-01    | Stable errors, request IDs and redacted provider diagnostics verified              | API/operations      | Planned                            |
+| G-05         | NFR-PERF-01   | Staging p50/p95 baseline is measured before thresholds are accepted                | Engineering/product | Planned                            |
+| G-05, DEP-04 | NFR-COMPAT-01 | Target wallet/browser/gRPC matrix has recorded evidence                            | QA                  | Planned                            |
 
 ## Coverage rules
 
-- Every approved P0 goal must map to at least one requirement.
-- Every P0 functional requirement must map to a story and one or more executable or manually repeatable acceptance tests.
-- Every non-functional requirement must name a verification method and evidence owner.
-- A `Blocked by decision` row cannot enter implementation until its dependency is approved.
-- A requirement change updates this matrix, affected stories/specifications, and tests in the same review.
-- Implementation PRs replace descriptive test names with links to exact test files, cases, runs, or signed review evidence.
+- Each canonical FR/NFR ID appears exactly once in this matrix.
+- A linked test proves only the behavior it executes; configuration tests do not prove wallet or trading readiness.
+- Replace planned descriptions with exact source, test, smoke-run or review evidence in the implementing change.
+- Update PRD, learning PRD, lab and matrix together when scope changes.
+- Fictional workshop observations are learning inputs, not user-research evidence.
 
-## Current audit summary
+## Current audit
 
-- Goals `G-01` through `G-03` are represented.
-- All documented P0 functional requirements have a proposed story/test path.
-- No product feature in this matrix is implemented by the current foundation.
-- Security configuration, compatibility, and performance rows remain blocked by explicit decisions.
-- Fictional lab observations (`OBS-*`) illustrate traceability only and are not real discovery evidence.
+The repository foundation and Sui network configuration contract are implemented; FR-NETWORK-01 remains partial until a wallet network guard exists. All wallet, market data and trading requirements remain planned. No document may claim live network access or trading until corresponding source and test evidence lands.
