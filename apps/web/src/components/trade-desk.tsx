@@ -1,6 +1,11 @@
 'use client';
 
-import { useCurrentAccount, useCurrentClient, useDAppKit } from '@mysten/dapp-kit-react';
+import {
+  useCurrentAccount,
+  useCurrentClient,
+  useCurrentNetwork,
+  useDAppKit,
+} from '@mysten/dapp-kit-react';
 import { useEffect, useRef, useState } from 'react';
 import { formatUnits } from '../lib/amounts';
 import {
@@ -52,6 +57,7 @@ function restore(): TxRecord | null {
 export function TradeDesk({ onConfirmed }: { onConfirmed: () => void }) {
   const account = useCurrentAccount();
   const client = useCurrentClient();
+  const network = useCurrentNetwork();
   const kit = useDAppKit();
   const [market, setMarket] = useState<MarketSnapshot>();
   const [marketError, setMarketError] = useState(false);
@@ -62,6 +68,7 @@ export function TradeDesk({ onConfirmed }: { onConfirmed: () => void }) {
   const [review, setReview] = useState<{
     quote: SwapQuote;
     prepared: Awaited<ReturnType<typeof prepareSwap>>;
+    network: string;
   }>();
   const [message, setMessage] = useState('');
   const [busy, setBusy] = useState(false);
@@ -85,14 +92,26 @@ export function TradeDesk({ onConfirmed }: { onConfirmed: () => void }) {
   }, []);
   useEffect(() => {
     let previousAccount = kit.stores.$connection.get().account;
-    return kit.stores.$connection.subscribe(({ account: nextAccount }) => {
+    let previousNetwork = kit.stores.$currentNetwork.get();
+    const stopConnection = kit.stores.$connection.subscribe(({ account: nextAccount }) => {
       if (nextAccount === previousAccount) return;
       previousAccount = nextAccount;
       // A return to the same address must not revive an old or in-flight quote.
       request.current++;
       setReview(undefined);
-      setMessage('');
+      setMessage('Tài khoản ví đã đổi. Lấy quote mới trước khi tiếp tục.');
     });
+    const stopNetwork = kit.stores.$currentNetwork.subscribe((nextNetwork) => {
+      if (nextNetwork === previousNetwork) return;
+      previousNetwork = nextNetwork;
+      request.current++;
+      setReview(undefined);
+      setMessage('Mạng đã đổi. Kiểm tra đang dùng Sui Testnet rồi lấy quote mới.');
+    });
+    return () => {
+      stopConnection();
+      stopNetwork();
+    };
   }, [kit]);
   useEffect(() => {
     let active = true;
@@ -111,8 +130,15 @@ export function TradeDesk({ onConfirmed }: { onConfirmed: () => void }) {
     };
   }, [client, marketVersion]);
 
-  const supported = account?.chains.includes('sui:testnet') && client.network === 'testnet';
-  const currentReview = review?.quote.owner === account?.address ? review : undefined;
+  const supported =
+    network === 'testnet' && account?.chains.includes('sui:testnet') && client.network === 'testnet';
+  const currentReview =
+    review &&
+    review.quote.owner === account?.address &&
+    review.network === network &&
+    client.network === network
+      ? review
+      : undefined;
   const fresh = currentReview && now < currentReview.quote.expiresAt;
   const unresolved =
     record && ['awaiting-signature', 'submitted', 'unknown'].includes(record.status);
@@ -123,7 +149,14 @@ export function TradeDesk({ onConfirmed }: { onConfirmed: () => void }) {
     setMessage('');
   }
   async function preview() {
-    if (!account || !supported || lock.current || unresolved) return;
+    if (
+      !account ||
+      !supported ||
+      kit.stores.$currentNetwork.get() !== 'testnet' ||
+      lock.current ||
+      unresolved
+    )
+      return;
     lock.current = true;
     setBusy(true);
     setMessage('');
@@ -133,8 +166,13 @@ export function TradeDesk({ onConfirmed }: { onConfirmed: () => void }) {
     try {
       const quote = await quoteSwap(client, owner, side, amount, bps);
       const prepared = await prepareSwap(client, quote);
-      if (request.current === id && kit.stores.$connection.get().account?.address === owner)
-        setReview({ quote, prepared });
+      if (
+        request.current === id &&
+        kit.stores.$connection.get().account?.address === owner &&
+        kit.stores.$currentNetwork.get() === 'testnet' &&
+        client.network === 'testnet'
+      )
+        setReview({ quote, prepared, network: 'testnet' });
     } catch (error) {
       if (request.current === id)
         setMessage(
@@ -175,9 +213,11 @@ export function TradeDesk({ onConfirmed }: { onConfirmed: () => void }) {
       if (
         !active ||
         active.address !== currentReview.quote.owner ||
-        !active.chains.includes('sui:testnet')
+        !active.chains.includes('sui:testnet') ||
+        kit.stores.$currentNetwork.get() !== 'testnet' ||
+        client.network !== 'testnet'
       )
-        throw new Error('Tài khoản đã đổi. Lấy quote mới.');
+        throw new Error('Tài khoản hoặc mạng đã đổi. Kiểm tra Sui Testnet rồi lấy quote mới.');
       assertFresh(currentReview.quote, active.address);
       pending = {
         digest: currentReview.prepared.digest,
