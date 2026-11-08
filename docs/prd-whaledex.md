@@ -4,7 +4,7 @@
 
 **Cập nhật:** 2026-09-29
 
-**Trạng thái:** Phạm vi MVP đã được chốt; đã có kết nối ví và luồng swap Testnet, chưa đạt release gate. Bằng chứng triển khai cập nhật 2026-11-03.
+**Trạng thái:** Phạm vi MVP đã được chốt; đã có kết nối ví và luồng swap Testnet, chưa đạt release gate. Bằng chứng triển khai cập nhật 2026-11-08.
 
 **Quyết định kiến trúc:** [ADR-0003](adr/0003-sui-deepbook-mvp.md)
 
@@ -20,17 +20,17 @@ MVP chỉ chạy trên **Sui Testnet**. Sui Mainnet, EVM, bridge, cross-chain, m
 
 ## 2. Bằng chứng hiện tại
 
-| Năng lực                                                            | Trạng thái                                                                                                                                         |
-| ------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Monorepo Next.js 16, React 19, Fastify 5, TypeScript                | Đã có                                                                                                                                              |
-| Landing page và design system                                       | Đã tích hợp với ví và swap Testnet; chưa phải ứng dụng giao dịch hoàn chỉnh                                                                        |
-| Health API, shared schema/config và test nền tảng                   | Đã có                                                                                                                                              |
-| Sui network registry, env validation và API catalog                 | Đã có; Testnet là mặc định và Mainnet bị tắt giao dịch                                                                                             |
-| Sui wallet, gRPC client, số dư SUI/DBUSDC/DEEP, DeepBook SUI/DBUSDC | Đã đọc balance theo allowlist và decimals với trạng thái loading/error/stale; pool và quote đã smoke test chỉ đọc; chưa ký end-to-end bằng ví thật |
-| Swap quote/preflight/review/sign/digest                             | Đã tích hợp; chưa nghiệm thu ví thật và giao diện trình duyệt                                                                                      |
-| Limit order, BalanceManager, cancel, lịch sử đầy đủ                 | Chưa triển khai                                                                                                                                    |
-| CI                                                                  | Đã có workflow kiểm tra PR; trạng thái chạy được theo dõi trên GitHub Actions                                                                      |
-| Indexer, database và deployment                                     | Chưa triển khai                                                                                                                                    |
+| Năng lực                                                            | Trạng thái                                                                                                                                                                                    |
+| ------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Monorepo Next.js 16, React 19, Fastify 5, TypeScript                | Đã có                                                                                                                                                                                         |
+| Landing page và design system                                       | Đã tích hợp với ví và swap Testnet; chưa phải ứng dụng giao dịch hoàn chỉnh                                                                                                                   |
+| Health API, shared schema/config và test nền tảng                   | Đã có                                                                                                                                                                                         |
+| Sui network registry, env validation và API catalog                 | Đã có; Testnet là mặc định và Mainnet bị tắt giao dịch                                                                                                                                        |
+| Sui wallet, gRPC client, số dư SUI/DBUSDC/DEEP, DeepBook SUI/DBUSDC | Đã đọc balance theo allowlist và decimals với trạng thái loading/error/stale; pool/metadata/quote đã kiểm chứng chỉ đọc; lượt 08/11 không cung cấp địa chỉ ví nên không xác minh balance thật |
+| Swap quote/preflight/review/sign/digest                             | Đã tích hợp price impact có nguồn, min/lot hai chiều, slippage, TTL, gas reserve và minimum output; chưa nghiệm thu ký end-to-end bằng ví thật và giao diện trình duyệt                       |
+| Limit order, BalanceManager, cancel, lịch sử đầy đủ                 | Chưa triển khai                                                                                                                                                                               |
+| CI                                                                  | Đã có workflow kiểm tra PR; trạng thái chạy được theo dõi trên GitHub Actions                                                                                                                 |
+| Indexer, database và deployment                                     | Chưa triển khai                                                                                                                                                                               |
 
 Tài liệu mô tả mục tiêu đã chấp thuận, không phải bằng chứng tính năng đã hoạt động. Source code, schema và test là nguồn sự thật về trạng thái triển khai.
 

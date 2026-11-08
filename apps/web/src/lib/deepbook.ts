@@ -3,7 +3,7 @@ import { bcs } from '@mysten/sui/bcs';
 import type { SuiGrpcClient } from '@mysten/sui/grpc';
 import { Transaction } from '@mysten/sui/transactions';
 import { normalizeSuiAddress } from '@mysten/sui/utils';
-import { parseUnits } from './amounts';
+import { formatUnits, parseUnits } from './amounts';
 
 export const MARKET = {
   key: 'SUI_DBUSDC',
@@ -53,6 +53,7 @@ export type SwapQuote = {
   output: bigint;
   minimum: bigint;
   deepFee: bigint;
+  inputRemainder: bigint;
   expiresAt: number;
 };
 export function minimumOutput(output: bigint, bps: number) {
@@ -65,6 +66,82 @@ export function minimumOutput(output: bigint, bps: number) {
 export function assertFresh(quote: SwapQuote, owner: string, now = Date.now()) {
   if (quote.owner !== owner || now >= quote.expiresAt)
     throw new Error('Quote hết hạn hoặc tài khoản đã đổi. Lấy quote mới.');
+}
+
+export type PriceImpactEstimate = {
+  basisPoints: bigint;
+  referencePrice: string;
+  sourceUpdatedAt: number;
+};
+
+type Fraction = { numerator: bigint; denominator: bigint };
+
+function decimalFraction(value: number): Fraction {
+  if (!Number.isFinite(value) || value <= 0) throw new Error('Giá tham chiếu không hợp lệ.');
+  const [coefficient, exponentText] = value.toString().toLowerCase().split('e');
+  const exponent = Number(exponentText ?? 0);
+  const [whole = '0', fraction = ''] = (coefficient ?? '').split('.');
+  let numerator = BigInt(`${whole}${fraction}`);
+  let denominator = 10n ** BigInt(fraction.length);
+  if (exponent > 0) numerator *= 10n ** BigInt(exponent);
+  if (exponent < 0) denominator *= 10n ** BigInt(-exponent);
+  return { numerator, denominator };
+}
+
+function formatFraction(value: Fraction, decimals: number) {
+  const scale = 10n ** BigInt(decimals);
+  const rounded = (value.numerator * scale + value.denominator / 2n) / value.denominator;
+  return formatUnits(rounded, decimals);
+}
+
+export function estimatePriceImpact(
+  quote: SwapQuote,
+  market: MarketSnapshot,
+): PriceImpactEstimate | null {
+  const bestBid = market.book.bid_prices[0];
+  const bestAsk = market.book.ask_prices[0];
+  if (
+    bestBid === undefined ||
+    bestAsk === undefined ||
+    bestBid <= 0 ||
+    bestAsk <= 0 ||
+    bestAsk < bestBid
+  )
+    return null;
+
+  const inputSpent = quote.amount - quote.inputRemainder;
+  if (inputSpent <= 0n || quote.output <= 0n) return null;
+  const baseAmount = quote.side === 'sell' ? inputSpent : quote.output;
+  const quoteAmount = quote.side === 'sell' ? quote.output : inputSpent;
+  const execution: Fraction = {
+    numerator: quoteAmount * 10n ** BigInt(MARKET.base.decimals),
+    denominator: baseAmount * 10n ** BigInt(MARKET.quote.decimals),
+  };
+  if (execution.denominator <= 0n) return null;
+
+  const bid = decimalFraction(bestBid);
+  const ask = decimalFraction(bestAsk);
+  const reference: Fraction = {
+    numerator: bid.numerator * ask.denominator + ask.numerator * bid.denominator,
+    denominator: 2n * bid.denominator * ask.denominator,
+  };
+  const referenceTimesExecution = reference.numerator * execution.denominator;
+  const executionTimesReference = execution.numerator * reference.denominator;
+  const adverseDifference =
+    quote.side === 'sell'
+      ? referenceTimesExecution - executionTimesReference
+      : executionTimesReference - referenceTimesExecution;
+  const scaledDifference = adverseDifference * 10_000n;
+  const basisPoints =
+    scaledDifference > 0n
+      ? (scaledDifference + referenceTimesExecution - 1n) / referenceTimesExecution
+      : scaledDifference / referenceTimesExecution;
+
+  return {
+    basisPoints,
+    referencePrice: formatFraction(reference, 8),
+    sourceUpdatedAt: market.updatedAt,
+  };
 }
 
 export async function quoteSwap(
@@ -96,10 +173,18 @@ export async function quoteSwap(
   const params = result.commandResults[1]!.returnValues.map((value) =>
     BigInt(bcs.U64.parse(value.bcs)),
   );
-  if (side === 'sell' && (amount < params[2]! || amount % params[1]! !== 0n)) {
+  const lotSize = params[1];
+  const minSize = params[2];
+  if (!lotSize || !minSize) throw new Error('Không đọc được lot size hoặc minimum size của pool.');
+  const inputRemainder = values[side === 'sell' ? 0 : 1]!;
+  if (inputRemainder > amount) throw new Error('Quote DeepBook trả về số dư đầu vào không hợp lệ.');
+  const output = values[side === 'sell' ? 1 : 0]!;
+  if (side === 'sell' && (amount < minSize || amount % lotSize !== 0n)) {
     throw new Error('Số lượng SUI không khớp lot size hoặc nhỏ hơn minimum size của pool.');
   }
-  const output = values[side === 'sell' ? 1 : 0]!;
+  if (side === 'buy' && (output < minSize || output % lotSize !== 0n)) {
+    throw new Error('Lượng SUI nhận không khớp lot size hoặc nhỏ hơn minimum size của pool.');
+  }
   return {
     owner,
     side,
@@ -107,6 +192,7 @@ export async function quoteSwap(
     output,
     minimum: minimumOutput(output, bps),
     deepFee: values[2]!,
+    inputRemainder,
     expiresAt: Date.now() + QUOTE_TTL,
   };
 }

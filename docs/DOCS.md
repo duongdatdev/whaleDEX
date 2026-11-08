@@ -13,7 +13,7 @@ Tài liệu này quy định thứ tự triển khai cho [PRD 3.0](prd-whaledex.
 
 ## 2. Trạng thái hiện tại
 
-Đã có monorepo, Sui gRPC/env, health/readiness/catalog API, landing page tích hợp kết nối ví Sui, số dư SUI, sổ lệnh SUI/DBUSDC và luồng swap DeepBook Testnet: quote → mô phỏng → review → yêu cầu ký → theo dõi digest. Pool và quote đã kiểm tra lại chỉ đọc trên Testnet ngày 2026-11-03; xem [bằng chứng Testnet](testnet-verification.md). Test tự động kiểm tra các trạng thái giao dịch, vô hiệu quote khi đổi account và response xác nhận thiếu/sai digest. CI kiểm tra PR đã được cấu hình. Chưa kiểm thử chữ ký/giao dịch end-to-end bằng ví thật và chưa kiểm tra trực quan trình duyệt. Limit order, BalanceManager, cancel và lịch sử đầy đủ chưa triển khai; MVP chưa đạt release gate.
+Đã có monorepo, Sui gRPC/env, health/readiness/catalog API, landing page tích hợp kết nối ví Sui, số dư SUI/DBUSDC/DEEP và luồng swap DeepBook Testnet: quote → mô phỏng → review → yêu cầu ký → theo dõi digest. Review hiển thị tác động giá so với mid-price best bid/ask, nguồn và thời điểm sổ lệnh; impact bất lợi trên 1% cần xác nhận. Lot/minimum được kiểm tra cho cả hai chiều và minimum output được đưa vào transaction. Pool, metadata và quote đã kiểm tra lại chỉ đọc trên Testnet ngày 2026-11-08; xem [bằng chứng Testnet](testnet-verification.md). Test tự động kiểm tra các trạng thái giao dịch, vô hiệu quote khi đổi account và response xác nhận thiếu/sai digest. CI kiểm tra PR đã được cấu hình. Chưa kiểm thử chữ ký/giao dịch end-to-end bằng ví thật, chưa đọc balance của ví trong lượt kiểm tra này và chưa kiểm tra trực quan trình duyệt. Limit order, BalanceManager, cancel và lịch sử đầy đủ chưa triển khai; MVP chưa đạt release gate.
 
 ## 3. Kiến trúc mục tiêu
 
@@ -83,12 +83,13 @@ Commit dự kiến: `feat(markets): integrate DeepBook spot market data`
 
 ### Giai đoạn 4 — Market order
 
-- [x] Form swap hai chiều với amount validation, lot/minimum size phía bán và gas reserve; mô phỏng kiểm tra điều kiện on-chain.
+- [x] Form swap hai chiều với amount validation, lot/minimum size cho cả hai chiều và gas reserve; mô phỏng kiểm tra điều kiện on-chain.
 - [x] Quote/preflight, minimum output theo slippage, phí DEEP/gas và review intent.
+- [x] Ước tính price impact so với mid-price best bid/ask của sổ lệnh; ghi nguồn/định nghĩa và yêu cầu xác nhận khi impact bất lợi vượt 1%.
 - [x] Tích hợp yêu cầu ký qua ví, theo dõi digest và link Explorer; chờ kiểm thử ví thật.
 - [x] Refresh số dư SUI/DBUSDC/DEEP và book sau confirmed result; lưu digest gần nhất để kiểm tra lại sau reload.
 - [ ] Kiểm thử chữ ký và giao dịch end-to-end bằng token Testnet; chuẩn bị DBUSDC/DEEP cho ví thử nghiệm.
-- [ ] Hoàn thiện price impact và lịch sử giao dịch đầy đủ.
+- [ ] Lịch sử giao dịch đầy đủ.
 
 Nghiệm thu: connect → quote → review → sign → confirmed chạy end-to-end bằng token Testnet; rejected/failed/unknown không bị báo thành công.
 

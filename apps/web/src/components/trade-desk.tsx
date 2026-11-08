@@ -10,6 +10,7 @@ import { useEffect, useRef, useState } from 'react';
 import { formatUnits } from '../lib/amounts';
 import {
   assertFresh,
+  estimatePriceImpact,
   GAS_BUDGET,
   MARKET,
   prepareSwap,
@@ -34,6 +35,12 @@ const STATUS = {
   rejected: 'Đã từ chối ký',
   unknown: 'Chưa xác định kết quả. Kiểm tra digest trước khi tạo giao dịch mới.',
 };
+function formatBasisPoints(value: bigint) {
+  const absolute = value < 0n ? -value : value;
+  const sign = value > 0n ? '+' : value < 0n ? '−' : '';
+  const fraction = (absolute % 100n).toString().padStart(2, '0');
+  return `${sign}${absolute / 100n},${fraction}%`;
+}
 function restore(): TxRecord | null {
   try {
     const data = JSON.parse(localStorage.getItem(STORAGE_KEY) ?? 'null');
@@ -65,10 +72,12 @@ export function TradeDesk({ onConfirmed }: { onConfirmed: () => void }) {
   const [side, setSide] = useState<Side>('buy');
   const [amount, setAmount] = useState('');
   const [bps, setBps] = useState(50);
+  const [impactConfirmed, setImpactConfirmed] = useState(false);
   const [review, setReview] = useState<{
     quote: SwapQuote;
     prepared: Awaited<ReturnType<typeof prepareSwap>>;
     network: string;
+    priceImpact: NonNullable<ReturnType<typeof estimatePriceImpact>>;
   }>();
   const [message, setMessage] = useState('');
   const [busy, setBusy] = useState(false);
@@ -141,7 +150,12 @@ export function TradeDesk({ onConfirmed }: { onConfirmed: () => void }) {
     client.network === network
       ? review
       : undefined;
-  const fresh = currentReview && now < currentReview.quote.expiresAt;
+  const fresh =
+    currentReview &&
+    now < currentReview.quote.expiresAt &&
+    now < currentReview.priceImpact.sourceUpdatedAt + 30_000;
+  const impactRequiresConfirmation =
+    currentReview !== undefined && currentReview.priceImpact.basisPoints > 100n;
   const unresolved =
     record && ['awaiting-signature', 'submitted', 'unknown'].includes(record.status);
   const inputCoin = side === 'sell' ? MARKET.base : MARKET.quote;
@@ -150,6 +164,7 @@ export function TradeDesk({ onConfirmed }: { onConfirmed: () => void }) {
   function invalidate() {
     request.current++;
     setReview(undefined);
+    setImpactConfirmed(false);
     setMessage('');
   }
   async function preview() {
@@ -165,10 +180,19 @@ export function TradeDesk({ onConfirmed }: { onConfirmed: () => void }) {
     setBusy(true);
     setMessage('');
     setReview(undefined);
+    setImpactConfirmed(false);
     const id = ++request.current;
     const owner = account.address;
     try {
-      const quote = await quoteSwap(client, owner, side, amount, bps);
+      const [quote, referenceMarket] = await Promise.all([
+        quoteSwap(client, owner, side, amount, bps),
+        readMarket(client),
+      ]);
+      setMarket(referenceMarket);
+      setMarketError(false);
+      const priceImpact = estimatePriceImpact(quote, referenceMarket);
+      if (!priceImpact)
+        throw new Error('Chưa đủ dữ liệu hai phía của sổ lệnh để tính tác động giá.');
       const prepared = await prepareSwap(client, quote);
       if (
         request.current === id &&
@@ -176,7 +200,7 @@ export function TradeDesk({ onConfirmed }: { onConfirmed: () => void }) {
         kit.stores.$currentNetwork.get() === 'testnet' &&
         client.network === 'testnet'
       )
-        setReview({ quote, prepared, network: 'testnet' });
+        setReview({ quote, prepared, network: 'testnet', priceImpact });
     } catch (error) {
       if (request.current === id)
         setMessage(
@@ -207,7 +231,15 @@ export function TradeDesk({ onConfirmed }: { onConfirmed: () => void }) {
     }
   }
   async function submit() {
-    if (!currentReview || !account || !supported || lock.current || unresolved) return;
+    if (
+      !currentReview ||
+      !account ||
+      !supported ||
+      lock.current ||
+      unresolved ||
+      (impactRequiresConfirmation && !impactConfirmed)
+    )
+      return;
     lock.current = true;
     setBusy(true);
     setMessage('');
@@ -415,6 +447,28 @@ export function TradeDesk({ onConfirmed }: { onConfirmed: () => void }) {
               </strong>
             </p>
             <p>
+              Tác động giá ước tính:{' '}
+              <strong>{formatBasisPoints(currentReview.priceImpact.basisPoints)}</strong>
+            </p>
+            <p>
+              Giá tham chiếu: {currentReview.priceImpact.referencePrice} DBUSDC/SUI · mid-price từ
+              best bid/ask DeepBookV3, cập nhật{' '}
+              {Math.max(0, Math.floor((now - currentReview.priceImpact.sourceUpdatedAt) / 1000))}{' '}
+              giây trước. Tác động so với mid-price, gồm spread và độ sâu sổ lệnh.
+            </p>
+            {impactRequiresConfirmation && (
+              <label className="impact-confirmation">
+                <input
+                  type="checkbox"
+                  checked={impactConfirmed}
+                  onChange={(event) => setImpactConfirmed(event.target.checked)}
+                  disabled={busy}
+                  aria-label="Xác nhận tiếp tục với tác động giá trên 1 phần trăm"
+                />
+                <span>Tôi đã xem tác động giá trên 1% và xác nhận tiếp tục.</span>
+              </label>
+            )}
+            <p>
               DEEP cấp cho phí: {formatUnits(currentReview.quote.deepFee, 6)} DEEP (phần dư trả về
               ví).
             </p>
@@ -428,7 +482,16 @@ export function TradeDesk({ onConfirmed }: { onConfirmed: () => void }) {
                 ? `Quote còn ${Math.ceil((currentReview.quote.expiresAt - now) / 1000)} giây`
                 : 'Quote hết hạn. Lấy quote mới.'}
             </p>
-            <button onClick={submit} disabled={!fresh || busy || !supported || !!unresolved}>
+            <button
+              onClick={submit}
+              disabled={
+                !fresh ||
+                busy ||
+                !supported ||
+                !!unresolved ||
+                (impactRequiresConfirmation && !impactConfirmed)
+              }
+            >
               Xác nhận & ký trong ví
             </button>
           </div>

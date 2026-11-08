@@ -63,7 +63,12 @@ beforeEach(() => {
   mocks.network = 'testnet';
   mocks.client.network = 'testnet';
   mocks.market.mockResolvedValue({
-    book: { bid_prices: [], bid_quantities: [], ask_prices: [1.5], ask_quantities: [1] },
+    book: {
+      bid_prices: [1.49],
+      bid_quantities: [20],
+      ask_prices: [1.51],
+      ask_quantities: [20],
+    },
     params: { lotSize: 0.1, minSize: 1 },
     updatedAt: Date.now(),
   });
@@ -74,16 +79,19 @@ beforeEach(() => {
     output: 1300000000n,
     minimum: 1293500000n,
     deepFee: 60028n,
+    inputRemainder: 0n,
     expiresAt: Date.now() + 30000,
   });
   mocks.prepare.mockResolvedValue({ transaction: {}, digest, gasEstimate: 10000n });
   mocks.sign.mockResolvedValue({ Transaction: { digest } });
   mocks.wait.mockResolvedValue({ Transaction: { digest } });
 });
-async function preview() {
+async function preview(confirmImpact = true) {
   fireEvent.change(screen.getByLabelText('Số lượng DBUSDC'), { target: { value: '2' } });
   fireEvent.click(screen.getByText('Lấy quote & mô phỏng'));
   await screen.findByText('Xem lại trước khi ký');
+  const checkbox = screen.queryByRole('checkbox');
+  if (confirmImpact && checkbox) fireEvent.click(checkbox);
 }
 function switchAccount(account: typeof mocks.current) {
   act(() => {
@@ -134,6 +142,21 @@ it('shows network and allowlisted coin types in the pre-sign review', async () =
   expect(screen.getByText(MARKET.base.type)).toBeInTheDocument();
   expect(screen.getByText(MARKET.fee.type)).toBeInTheDocument();
   expect(screen.getByText(`Người nhận: ${mocks.account.address}`)).toBeInTheDocument();
+});
+it('shows sourced price impact and requires confirmation above one percent', async () => {
+  render(<TradeDesk onConfirmed={vi.fn()} />);
+  await preview(false);
+
+  expect(screen.getByText(/Tác động giá ước tính/)).toHaveTextContent('+2,57%');
+  expect(screen.getByText(/mid-price từ best bid\/ask DeepBookV3/)).toBeInTheDocument();
+  const signButton = screen.getByText('Xác nhận & ký trong ví');
+  expect(signButton).toBeDisabled();
+  expect(mocks.sign).not.toHaveBeenCalled();
+
+  fireEvent.click(
+    screen.getByRole('checkbox', { name: 'Xác nhận tiếp tục với tác động giá trên 1 phần trăm' }),
+  );
+  expect(signButton).toBeEnabled();
 });
 it('invalidates review on changed input or wallet account', async () => {
   const view = render(<TradeDesk onConfirmed={vi.fn()} />);
@@ -287,13 +310,26 @@ it('reports explicit wallet rejection and failed on-chain transactions distinctl
   fireEvent.click(screen.getByText('Xác nhận & ký trong ví'));
   await screen.findByText('Giao dịch thất bại on-chain');
 });
-it('shows unavailable liquidity and never opens signing after preflight failure', async () => {
+it('blocks an underfunded transaction during preflight before signing', async () => {
   mocks.prepare.mockRejectedValue(new Error('Thiếu DEEP Testnet để trả phí giao dịch.'));
   render(<TradeDesk onConfirmed={vi.fn()} />);
   fireEvent.change(screen.getByLabelText('Số lượng DBUSDC'), { target: { value: '2' } });
   fireEvent.click(screen.getByText('Lấy quote & mô phỏng'));
   await screen.findByText('Thiếu DEEP Testnet để trả phí giao dịch.');
-  expect(screen.getByText('Chưa có thanh khoản.')).toBeInTheDocument();
+  expect(mocks.prepare).toHaveBeenCalledOnce();
+  expect(mocks.sign).not.toHaveBeenCalled();
+});
+it('blocks signing when the order book cannot provide a price impact reference', async () => {
+  mocks.market.mockResolvedValue({
+    book: { bid_prices: [], bid_quantities: [], ask_prices: [], ask_quantities: [] },
+    params: { lotSize: 0.1, minSize: 1 },
+    updatedAt: Date.now(),
+  });
+  render(<TradeDesk onConfirmed={vi.fn()} />);
+  fireEvent.change(screen.getByLabelText('Số lượng DBUSDC'), { target: { value: '2' } });
+  fireEvent.click(screen.getByText('Lấy quote & mô phỏng'));
+  await screen.findByText('Chưa đủ dữ liệu hai phía của sổ lệnh để tính tác động giá.');
+  expect(mocks.prepare).not.toHaveBeenCalled();
   expect(mocks.sign).not.toHaveBeenCalled();
 });
 it('restores a pending digest after reload and can recheck without a wallet', async () => {
