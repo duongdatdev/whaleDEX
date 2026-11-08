@@ -80,6 +80,11 @@ summary:focus-visible,
   outline-offset: 3px;
 }
 
+.wallet-modal:focus-visible {
+  outline: 3px solid var(--color-focus);
+  outline-offset: 3px;
+}
+
 .app-shell {
   min-height: 100dvh;
 }
@@ -512,7 +517,7 @@ summary:focus-visible,
   .wallet-modal {
     width: 100%;
     max-height: min(80dvh, 720px);
-    padding: var(--space-4);
+    padding: var(--space-4) var(--space-4) calc(var(--space-4) + env(safe-area-inset-bottom, 0px));
     border-radius: var(--radius-panel) var(--radius-panel) 0 0;
   }
   .wallet-panel__heading {

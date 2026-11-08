@@ -8,7 +8,7 @@ import {
   useWalletConnection,
   useWallets,
 } from '@mysten/dapp-kit-react';
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { WalletBalances } from './wallet-balances';
 
 function isRequestRejected(error: unknown) {
@@ -29,19 +29,30 @@ export function WalletPanel({
   const [connectingWallet, setConnectingWallet] = useState('');
   const [connectionError, setConnectionError] = useState('');
   const [disconnecting, setDisconnecting] = useState(false);
-  const connectTrigger = useRef<HTMLButtonElement>(null);
+  const walletAction = useRef<HTMLButtonElement>(null);
   const dialog = useRef<HTMLDivElement>(null);
+  const restoreFocusOnClose = useRef(false);
   const currentWallet = connection.status === 'connected' ? connection.wallet : null;
   const supportedAccount = network === 'testnet' && account?.chains.includes('sui:testnet');
 
+  const closeDialog = useCallback(() => {
+    restoreFocusOnClose.current = true;
+    setConnectOpen(false);
+  }, []);
+
   useEffect(() => {
-    if (!connectOpen) return;
-    const trigger = connectTrigger.current;
+    if (!connectOpen) {
+      if (restoreFocusOnClose.current) {
+        restoreFocusOnClose.current = false;
+        walletAction.current?.focus();
+      }
+      return;
+    }
     dialog.current?.querySelector<HTMLElement>('button:not([disabled])')?.focus();
     function keepFocusInside(event: KeyboardEvent) {
       if (event.key === 'Escape') {
         event.preventDefault();
-        setConnectOpen(false);
+        closeDialog();
         return;
       }
       if (event.key !== 'Tab' || !dialog.current) return;
@@ -72,9 +83,8 @@ export function WalletPanel({
     document.addEventListener('keydown', keepFocusInside);
     return () => {
       document.removeEventListener('keydown', keepFocusInside);
-      trigger?.focus();
     };
-  }, [connectOpen]);
+  }, [closeDialog, connectOpen]);
 
   async function connect(wallet: (typeof wallets)[number]) {
     if (connectingWallet) return;
@@ -82,7 +92,7 @@ export function WalletPanel({
     setConnectingWallet(wallet.name);
     try {
       await kit.connectWallet({ wallet });
-      setConnectOpen(false);
+      closeDialog();
     } catch (error) {
       setConnectionError(
         isRequestRejected(error)
@@ -123,17 +133,24 @@ export function WalletPanel({
           <p className="wallet-network">Mạng ứng dụng: Sui Testnet</p>
         </div>
         {currentWallet ? (
-          <button className="wallet-secondary-action" onClick={disconnect} disabled={disconnecting}>
+          <button
+            ref={walletAction}
+            className="wallet-secondary-action"
+            onClick={disconnect}
+            disabled={disconnecting}
+            type="button"
+          >
             {disconnecting ? 'Đang ngắt kết nối…' : 'Ngắt kết nối'}
           </button>
         ) : (
           <button
-            ref={connectTrigger}
+            ref={walletAction}
             onClick={() => {
               setConnectionError('');
               setConnectOpen(true);
             }}
             disabled={connection.isConnecting || connection.isReconnecting}
+            type="button"
           >
             {connection.isConnecting || connection.isReconnecting ? 'Đang kết nối…' : 'Kết nối ví'}
           </button>
@@ -195,7 +212,7 @@ export function WalletPanel({
         <div
           className="wallet-modal-backdrop"
           onMouseDown={(event) => {
-            if (event.target === event.currentTarget && !connectingWallet) setConnectOpen(false);
+            if (event.target === event.currentTarget && !connectingWallet) closeDialog();
           }}
         >
           <div
@@ -214,7 +231,7 @@ export function WalletPanel({
               <button
                 className="wallet-modal__close"
                 aria-label="Đóng cửa sổ kết nối ví"
-                onClick={() => setConnectOpen(false)}
+                onClick={closeDialog}
                 disabled={!!connectingWallet}
               >
                 ×
@@ -263,7 +280,7 @@ export function WalletPanel({
             )}
             <button
               className="wallet-secondary-action wallet-modal__cancel"
-              onClick={() => setConnectOpen(false)}
+              onClick={closeDialog}
               disabled={!!connectingWallet}
             >
               Đóng

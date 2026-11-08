@@ -55,6 +55,28 @@ it('shows missing-wallet onboarding and returns focus after closing the dialog',
   expect(document.activeElement).toBe(trigger);
 });
 
+it('returns focus to the connected-wallet action when connection replaces the trigger', async () => {
+  state.wallets = [{ name: 'Slush' }];
+  state.connectWallet.mockImplementationOnce(async () => {
+    state.account = { address: '0x1', chains: ['sui:testnet'] };
+    state.connection = {
+      status: 'connected',
+      isConnecting: false,
+      isReconnecting: false,
+      wallet: { name: 'Slush' },
+    };
+    return { accounts: [] };
+  });
+  render(<WalletPanel />);
+
+  fireEvent.click(screen.getByRole('button', { name: 'Kết nối ví' }));
+  fireEvent.click(screen.getByRole('button', { name: /Slush/ }));
+
+  const disconnectButton = await screen.findByRole('button', { name: 'Ngắt kết nối' });
+  expect(await screen.queryByRole('dialog')).not.toBeInTheDocument();
+  await waitFor(() => expect(document.activeElement).toBe(disconnectButton));
+});
+
 it('reports rejected wallet connection and allows retry', async () => {
   state.wallets = [{ name: 'Slush' }];
   state.connectWallet
@@ -82,6 +104,8 @@ it('announces that it is waiting for wallet approval', async () => {
   fireEvent.click(screen.getByRole('button', { name: 'Kết nối ví' }));
   fireEvent.click(screen.getByRole('button', { name: /Slush/ }));
   expect(await screen.findByText(/Đang chờ Slush xác nhận/)).toBeInTheDocument();
+  fireEvent.keyDown(document, { key: 'Tab' });
+  expect(document.activeElement).toBe(screen.getByRole('dialog'));
 
   await act(async () => resolveConnection({ accounts: [] }));
   await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
