@@ -13,7 +13,7 @@ Tài liệu này quy định thứ tự triển khai cho [PRD 3.0](prd-whaledex.
 
 ## 2. Trạng thái hiện tại
 
-Đã có monorepo, Sui gRPC/env, health/readiness/catalog API, landing page tích hợp kết nối ví Sui, số dư SUI/DBUSDC/DEEP và luồng swap DeepBook Testnet: quote → mô phỏng → review → yêu cầu ký → theo dõi digest. Review hiển thị tác động giá so với mid-price best bid/ask, nguồn và thời điểm sổ lệnh; impact bất lợi trên 1% cần xác nhận. Lot/minimum được kiểm tra cho cả hai chiều và minimum output được đưa vào transaction. Pool, metadata và quote đã kiểm tra lại chỉ đọc trên Testnet ngày 2026-11-08; xem [bằng chứng Testnet](testnet-verification.md). Test tự động kiểm tra các trạng thái giao dịch, vô hiệu quote khi đổi account và response xác nhận thiếu/sai digest. CI kiểm tra PR đã được cấu hình. Chưa kiểm thử chữ ký/giao dịch end-to-end bằng ví thật, chưa đọc balance của ví trong lượt kiểm tra này và chưa kiểm tra trực quan trình duyệt. Limit order, BalanceManager, cancel và lịch sử đầy đủ chưa triển khai; MVP chưa đạt release gate.
+Đã có monorepo, Sui gRPC/env, health/readiness/catalog API, landing page tích hợp kết nối ví Sui, số dư SUI/DBUSDC/DEEP và luồng swap DeepBook Testnet: quote → mô phỏng → review → yêu cầu ký → theo dõi digest. Review hiển thị tác động giá so với mid-price best bid/ask, nguồn và thời điểm sổ lệnh; impact bất lợi trên 1% cần xác nhận. Lot/minimum được kiểm tra cho cả hai chiều và minimum output được đưa vào transaction. Pool, metadata và quote đã kiểm tra lại chỉ đọc trên Testnet ngày 2026-11-08; xem [bằng chứng Testnet](testnet-verification.md). Adapter BalanceManager Testnet có builder create/share, trích ID từ kết quả giao dịch, đăng ký registry, tìm manager và kiểm tra package/type/owner/capability; hiện chỉ có test fixture, chưa tạo hoặc xác minh manager bằng ví thật. Chưa kiểm thử chữ ký/giao dịch swap end-to-end bằng ví thật, chưa đọc balance của ví trong lượt kiểm tra gần nhất và chưa kiểm tra trực quan trình duyệt. UI deposit/withdraw, limit order, cancel và lịch sử đầy đủ chưa triển khai; MVP chưa đạt release gate.
 
 ## 3. Kiến trúc mục tiêu
 
@@ -97,7 +97,8 @@ Commit dự kiến: `feat(trade): support DeepBook market orders`
 
 ### Giai đoạn 5 — Limit order và trading account
 
-- [ ] Tích hợp BalanceManager/deposit/withdraw nếu luồng DeepBook yêu cầu.
+- [x] Thêm adapter Testnet để tạo/chia sẻ, trích ID từ kết quả ví, đăng ký/tìm manager theo registry và xác minh package/type/owner/capability; hợp đồng FE ở [BalanceManager contract](balance-manager-contract.md).
+- [ ] Tạo manager thật bằng ví Testnet và xác minh owner/capability trên chain; nối manager vào UI cùng deposit/withdraw.
 - [ ] Limit và post-only order với tick/lot validation.
 - [ ] Open orders, partial fills và cancel.
 - [ ] Tách rõ wallet balance, available, locked và settled balance.

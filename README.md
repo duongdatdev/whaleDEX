@@ -235,6 +235,9 @@ API tests use Fastify injection without opening a real port. Web tests cover nav
 The roadmap targets a non-custodial spot DEX on Sui Testnet: connect a Sui wallet, integrate
 DeepBook market data, then deliver market orders, limit orders, history, and Testnet hardening.
 Sui Mainnet and EVM/multi-chain require separate future decisions.
-Limit orders, BalanceManager, indexing, a database, Docker, and deployment are not implemented yet.
+The BalanceManager Testnet adapter has create/share, execution ID extraction, registry
+registration/discovery, and owner/capability checks covered by fixture tests; no real manager
+has been verified and the UI does not yet expose it. Limit orders,
+deposit/withdraw UI, indexing, a database, Docker, and deployment are not implemented yet.
 Pull-request CI is configured in `.github/workflows/ci.yml`. Follow
 [the development roadmap](docs/DOCS.md) for the accepted delivery order.
