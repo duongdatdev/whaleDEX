@@ -131,7 +131,9 @@ export function TradeDesk({ onConfirmed }: { onConfirmed: () => void }) {
   }, [client, marketVersion]);
 
   const supported =
-    network === 'testnet' && account?.chains.includes('sui:testnet') && client.network === 'testnet';
+    network === 'testnet' &&
+    account?.chains.includes('sui:testnet') &&
+    client.network === 'testnet';
   const currentReview =
     review &&
     review.quote.owner === account?.address &&
@@ -142,6 +144,8 @@ export function TradeDesk({ onConfirmed }: { onConfirmed: () => void }) {
   const fresh = currentReview && now < currentReview.quote.expiresAt;
   const unresolved =
     record && ['awaiting-signature', 'submitted', 'unknown'].includes(record.status);
+  const inputCoin = side === 'sell' ? MARKET.base : MARKET.quote;
+  const outputCoin = side === 'sell' ? MARKET.quote : MARKET.base;
 
   function invalidate() {
     request.current++;
@@ -371,6 +375,30 @@ export function TradeDesk({ onConfirmed }: { onConfirmed: () => void }) {
         {currentReview && (
           <div className="review" aria-label="Xem lại giao dịch">
             <h3>Xem lại trước khi ký</h3>
+            <p className="review-network">Mạng ký: Sui Testnet · DeepBookV3</p>
+            <dl className="review-assets">
+              <div>
+                <dt>Coin gửi</dt>
+                <dd>
+                  <strong>{inputCoin.symbol}</strong>
+                  <code>{inputCoin.type}</code>
+                </dd>
+              </div>
+              <div>
+                <dt>Coin nhận</dt>
+                <dd>
+                  <strong>{outputCoin.symbol}</strong>
+                  <code>{outputCoin.type}</code>
+                </dd>
+              </div>
+              <div>
+                <dt>Coin trả phí</dt>
+                <dd>
+                  <strong>DEEP · Testnet</strong>
+                  <code>{MARKET.fee.type}</code>
+                </dd>
+              </div>
+            </dl>
             <p>
               Gửi tối đa: {formatUnits(currentReview.quote.amount, side === 'sell' ? 9 : 6)}{' '}
               {side === 'sell' ? 'SUI' : 'DBUSDC'}; phần dư được trả về ví.

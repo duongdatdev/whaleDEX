@@ -18,7 +18,7 @@ export default function WalletApp() {
   }
   return (
     <DAppKitProvider dAppKit={dAppKit}>
-      <WalletPanel key={balanceVersion} />
+      <WalletPanel balanceRefreshVersion={balanceVersion} />
       <TradeDesk onConfirmed={() => setBalanceVersion((value) => value + 1)} />
     </DAppKitProvider>
   );

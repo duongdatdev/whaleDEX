@@ -1,6 +1,7 @@
 import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { beforeEach, expect, it, vi } from 'vitest';
 import { WalletPanel } from './wallet-panel';
+import { MARKET } from '../lib/deepbook';
 
 const state = vi.hoisted(() => ({
   account: null as null | { address: string; chains: string[] },
@@ -12,6 +13,7 @@ const state = vi.hoisted(() => ({
     wallet?: { name: string };
   },
   wallets: [] as { name: string }[],
+  failedCoins: [] as string[],
   connectWallet: vi.fn(),
   disconnectWallet: vi.fn(),
   getBalance: vi.fn(),
@@ -33,6 +35,7 @@ beforeEach(() => {
   state.network = 'testnet';
   state.connection = { status: 'disconnected', isConnecting: false, isReconnecting: false };
   state.wallets = [];
+  state.failedCoins = [];
   state.connectWallet.mockReset().mockResolvedValue({ accounts: [] });
   state.disconnectWallet.mockReset().mockResolvedValue(undefined);
   state.getBalance.mockReset().mockResolvedValue({ balance: { balance: '0' } });
@@ -126,9 +129,65 @@ it('discards an old account balance when the account changes', async () => {
   const view = render(<WalletPanel />);
   state.account = { address: '0x2', chains: ['sui:testnet'] };
   view.rerender(<WalletPanel />);
-  expect(await screen.findByText('Số dư ví: 2 SUI')).toBeInTheDocument();
+  expect(await screen.findByText('2 SUI')).toBeInTheDocument();
   await act(async () => {
     resolveOld({ balance: { balance: '99000000000' } });
   });
-  expect(screen.queryByText('Số dư ví: 99 SUI')).not.toBeInTheDocument();
+  expect(screen.queryByText('99 SUI')).not.toBeInTheDocument();
+});
+
+it('loads every allowlisted coin with its own exact decimals', async () => {
+  state.account = { address: '0x1', chains: ['sui:testnet'] };
+  state.connection = {
+    status: 'connected',
+    isConnecting: false,
+    isReconnecting: false,
+    wallet: { name: 'Slush' },
+  };
+  const values: Record<string, string> = {
+    [MARKET.base.type]: '1234567890',
+    [MARKET.quote.type]: '123456789',
+    [MARKET.fee.type]: '20000001',
+  };
+  state.getBalance.mockImplementation(({ coinType }: { coinType: string }) =>
+    Promise.resolve({ balance: { balance: values[coinType]! } }),
+  );
+  render(<WalletPanel />);
+
+  expect(await screen.findByText('1.23456789 SUI')).toBeInTheDocument();
+  expect(screen.getByText('123.456789 DBUSDC')).toBeInTheDocument();
+  expect(screen.getByText('20.000001 DEEP')).toBeInTheDocument();
+  expect(state.getBalance).toHaveBeenCalledWith({ owner: '0x1', coinType: MARKET.base.type });
+  expect(state.getBalance).toHaveBeenCalledWith({ owner: '0x1', coinType: MARKET.quote.type });
+  expect(state.getBalance).toHaveBeenCalledWith({ owner: '0x1', coinType: MARKET.fee.type });
+  expect(screen.getByText(/Không gồm tài sản trong BalanceManager/)).toBeInTheDocument();
+});
+
+it('shows loading and keeps a failed coin balance marked stale after refresh', async () => {
+  state.account = { address: '0x1', chains: ['sui:testnet'] };
+  state.connection = {
+    status: 'connected',
+    isConnecting: false,
+    isReconnecting: false,
+    wallet: { name: 'Slush' },
+  };
+  const values: Record<string, string> = {
+    [MARKET.base.type]: '1000000000',
+    [MARKET.quote.type]: '10000000',
+    [MARKET.fee.type]: '3000000',
+  };
+  state.getBalance.mockImplementation(({ coinType }: { coinType: string }) => {
+    if (state.failedCoins.includes(coinType)) return Promise.reject(new Error('RPC failure'));
+    return Promise.resolve({ balance: { balance: values[coinType]! } });
+  });
+  const view = render(<WalletPanel />);
+  expect(screen.getAllByText('Đang tải…')).toHaveLength(3);
+  expect(await screen.findByText('10 DBUSDC')).toBeInTheDocument();
+
+  state.failedCoins = [MARKET.quote.type];
+  view.rerender(<WalletPanel balanceRefreshVersion={1} />);
+  expect(await screen.findByRole('alert')).toHaveTextContent('Không đọc được số dư DBUSDC');
+  expect(screen.getByText('10 DBUSDC')).toBeInTheDocument();
+  expect(screen.getByText(/Dữ liệu cũ ·/)).toBeInTheDocument();
+  expect(screen.getByRole('button', { name: 'Làm mới số dư' })).toBeEnabled();
 });

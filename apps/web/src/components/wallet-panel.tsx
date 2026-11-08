@@ -9,14 +9,16 @@ import {
   useWallets,
 } from '@mysten/dapp-kit-react';
 import { useEffect, useRef, useState } from 'react';
-import { formatUnits } from '../lib/amounts';
+import { WalletBalances } from './wallet-balances';
 
 function isRequestRejected(error: unknown) {
   if (typeof error !== 'object' || error === null || !('code' in error)) return false;
   return error.code === 4001 || error.code === 4001000;
 }
 
-export function WalletPanel() {
+export function WalletPanel({
+  balanceRefreshVersion = 0,
+}: { balanceRefreshVersion?: number } = {}) {
   const account = useCurrentAccount();
   const client = useCurrentClient();
   const network = useCurrentNetwork();
@@ -56,7 +58,10 @@ export function WalletPanel() {
       const first = items.at(0);
       const last = items.at(-1);
       if (!first || !last) return;
-      if (event.shiftKey && (document.activeElement === first || document.activeElement === dialog.current)) {
+      if (
+        event.shiftKey &&
+        (document.activeElement === first || document.activeElement === dialog.current)
+      ) {
         event.preventDefault();
         last.focus();
       } else if (!event.shiftKey && document.activeElement === last) {
@@ -137,7 +142,9 @@ export function WalletPanel() {
 
       <p
         className="wallet-status"
-        data-state={connection.status === 'connected' && supportedAccount ? 'connected' : 'disconnected'}
+        data-state={
+          connection.status === 'connected' && supportedAccount ? 'connected' : 'disconnected'
+        }
         role="status"
         aria-live="polite"
       >
@@ -145,7 +152,11 @@ export function WalletPanel() {
         {statusText}
       </p>
 
-      {connectionError && !connectOpen && <p className="wallet-error" role="alert">{connectionError}</p>}
+      {connectionError && !connectOpen && (
+        <p className="wallet-error" role="alert">
+          {connectionError}
+        </p>
+      )}
       {account ? (
         <>
           <p className="mono address wallet-address" aria-label="Địa chỉ ví">
@@ -157,10 +168,11 @@ export function WalletPanel() {
               và giao dịch.
             </p>
           ) : (
-            <WalletBalance
+            <WalletBalances
               key={`${network}:${account.address}`}
               owner={account.address}
               client={client}
+              refreshVersion={balanceRefreshVersion}
             />
           )}
         </>
@@ -170,7 +182,12 @@ export function WalletPanel() {
           cài ví Sui rồi tải lại trang.
         </p>
       )}
-      <a className="wallet-faucet" href="https://faucet.sui.io/?network=testnet" target="_blank" rel="noreferrer">
+      <a
+        className="wallet-faucet"
+        href="https://faucet.sui.io/?network=testnet"
+        target="_blank"
+        rel="noreferrer"
+      >
         Nhận SUI Testnet từ faucet ↗
       </a>
 
@@ -203,7 +220,11 @@ export function WalletPanel() {
                 ×
               </button>
             </div>
-            {connectionError && <p className="wallet-error" role="alert">{connectionError}</p>}
+            {connectionError && (
+              <p className="wallet-error" role="alert">
+                {connectionError}
+              </p>
+            )}
             {connection.isConnecting || connectingWallet ? (
               <p className="wallet-modal__message" role="status" aria-live="polite">
                 Đang chờ {connectingWallet || 'ví'} xác nhận. Hãy kiểm tra cửa sổ ví của bạn.
@@ -217,23 +238,27 @@ export function WalletPanel() {
                       onClick={() => connect(wallet)}
                       disabled={!!connectingWallet}
                     >
-                      <span className="wallet-option__mark" aria-hidden="true">↗</span>
+                      <span className="wallet-option__mark" aria-hidden="true">
+                        ↗
+                      </span>
                       <span>
                         <strong>{wallet.name}</strong>
                         <small>Ví Sui tương thích · Testnet</small>
                       </span>
-                      <span className="wallet-option__arrow" aria-hidden="true">→</span>
+                      <span className="wallet-option__arrow" aria-hidden="true">
+                        →
+                      </span>
                     </button>
                   </li>
                 ))}
               </ul>
             ) : (
               <div className="wallet-modal__empty">
-                <p className="wallet-modal__empty-mark" aria-hidden="true">◇</p>
-                <h3>Chưa tìm thấy ví</h3>
-                <p>
-                  Cài ví hỗ trợ Sui Wallet Standard, mở khóa ví rồi tải lại trang để kết nối.
+                <p className="wallet-modal__empty-mark" aria-hidden="true">
+                  ◇
                 </p>
+                <h3>Chưa tìm thấy ví</h3>
+                <p>Cài ví hỗ trợ Sui Wallet Standard, mở khóa ví rồi tải lại trang để kết nối.</p>
               </div>
             )}
             <button
@@ -247,54 +272,5 @@ export function WalletPanel() {
         </div>
       )}
     </section>
-  );
-}
-
-export function WalletBalance({
-  owner,
-  client,
-}: {
-  owner: string;
-  client: ReturnType<typeof useCurrentClient>;
-}) {
-  const [balance, setBalance] = useState<string>();
-  const [error, setError] = useState(false);
-  const [refresh, setRefresh] = useState(0);
-  useEffect(() => {
-    let active = true;
-    client.core
-      .getBalance({ owner })
-      .then(({ balance }) => {
-        if (active) setBalance(formatUnits(BigInt(balance.balance), 9));
-      })
-      .catch(() => {
-        if (active) setError(true);
-      });
-    return () => {
-      active = false;
-    };
-  }, [client, owner, refresh]);
-  return (
-    <div className="wallet-balance" aria-live="polite">
-      <p className="wallet-balance__value">
-        {error
-          ? 'Không đọc được số dư. Hãy thử lại.'
-          : balance === undefined
-            ? 'Đang đọc số dư…'
-            : `Số dư ví: ${balance} SUI`}
-      </p>
-      {error && (
-        <button
-          className="wallet-secondary-action"
-          onClick={() => {
-            setError(false);
-            setBalance(undefined);
-            setRefresh((value) => value + 1);
-          }}
-        >
-          Làm mới số dư
-        </button>
-      )}
-    </div>
   );
 }

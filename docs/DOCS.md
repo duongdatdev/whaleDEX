@@ -63,9 +63,8 @@ Commit dự kiến: `refactor(networks): replace EVM registry with Sui configura
 - [x] Thêm `@mysten/sui` và cấu hình `SuiGrpcClient` cho API/web với Testnet mặc định.
 - [x] Thêm URL override, timeout, readiness và test lỗi provider/network mismatch.
 - [x] Thêm `@mysten/dapp-kit-react`, wallet provider và connect/disconnect flow.
-- [ ] Xử lý account/network change, rejected connection và missing wallet.
-- [x] Đọc và hiển thị SUI gas balance; loại bỏ kết quả cũ khi đổi account.
-- [ ] Hiển thị đầy đủ coin balances; hiện DBUSDC/DEEP mới được kiểm tra ở bước preflight.
+- [x] Xử lý account/network change, rejected connection và missing wallet; quote cũ bị vô hiệu.
+- [x] Đọc SUI, DBUSDC và DEEP từ allowlist, đúng decimals; giữ và gắn nhãn dữ liệu cũ khi refresh lỗi.
 
 Nghiệm thu: kết nối ví Testnet, đổi account làm mới đúng dữ liệu và ứng dụng không nhận private key.
 
@@ -87,9 +86,9 @@ Commit dự kiến: `feat(markets): integrate DeepBook spot market data`
 - [x] Form swap hai chiều với amount validation, lot/minimum size phía bán và gas reserve; mô phỏng kiểm tra điều kiện on-chain.
 - [x] Quote/preflight, minimum output theo slippage, phí DEEP/gas và review intent.
 - [x] Tích hợp yêu cầu ký qua ví, theo dõi digest và link Explorer; chờ kiểm thử ví thật.
-- [x] Refresh số dư SUI và book sau confirmed result; lưu digest gần nhất để kiểm tra lại sau reload.
+- [x] Refresh số dư SUI/DBUSDC/DEEP và book sau confirmed result; lưu digest gần nhất để kiểm tra lại sau reload.
 - [ ] Kiểm thử chữ ký và giao dịch end-to-end bằng token Testnet; chuẩn bị DBUSDC/DEEP cho ví thử nghiệm.
-- [ ] Hoàn thiện price impact, lịch sử và refresh toàn bộ coin balances.
+- [ ] Hoàn thiện price impact và lịch sử giao dịch đầy đủ.
 
 Nghiệm thu: connect → quote → review → sign → confirmed chạy end-to-end bằng token Testnet; rejected/failed/unknown không bị báo thành công.
 

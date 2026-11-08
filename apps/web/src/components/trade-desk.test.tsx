@@ -1,6 +1,7 @@
 import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { beforeEach, expect, it, vi } from 'vitest';
 import { TradeDesk } from './trade-desk';
+import { MARKET } from '../lib/deepbook';
 
 const mocks = vi.hoisted(() => {
   const account = { address: `0x${'1'.repeat(64)}`, chains: ['sui:testnet'] };
@@ -119,6 +120,20 @@ it('reviews and signs once, then confirms only after the chain response', async 
   });
   expect(screen.getByText('Đã xác nhận on-chain')).toBeInTheDocument();
   expect(onConfirmed).toHaveBeenCalledOnce();
+});
+it('shows network and allowlisted coin types in the pre-sign review', async () => {
+  render(<TradeDesk onConfirmed={vi.fn()} />);
+  await preview();
+
+  expect(screen.getByText('Mạng ký: Sui Testnet · DeepBookV3')).toBeInTheDocument();
+  expect(screen.getByText('Coin gửi')).toBeInTheDocument();
+  expect(screen.getByText('Coin nhận')).toBeInTheDocument();
+  expect(screen.getByText('Coin trả phí')).toBeInTheDocument();
+  expect(screen.getByText('DEEP · Testnet')).toBeInTheDocument();
+  expect(screen.getByText(MARKET.quote.type)).toBeInTheDocument();
+  expect(screen.getByText(MARKET.base.type)).toBeInTheDocument();
+  expect(screen.getByText(MARKET.fee.type)).toBeInTheDocument();
+  expect(screen.getByText(`Người nhận: ${mocks.account.address}`)).toBeInTheDocument();
 });
 it('invalidates review on changed input or wallet account', async () => {
   const view = render(<TradeDesk onConfirmed={vi.fn()} />);
