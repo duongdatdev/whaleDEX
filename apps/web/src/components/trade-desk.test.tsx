@@ -8,6 +8,7 @@ const mocks = vi.hoisted(() => {
   return {
     account,
     current: account as typeof account | null,
+    network: 'testnet',
     quote: vi.fn(),
     prepare: vi.fn(),
     sign: vi.fn(),
@@ -15,6 +16,7 @@ const mocks = vi.hoisted(() => {
     client: { network: 'testnet', core: { waitForTransaction: wait } },
     market: vi.fn(),
     connections: new Set<(value: { account: typeof account | null }) => void>(),
+    networks: new Set<(value: string) => void>(),
   };
 });
 vi.mock('@mysten/dapp-kit-react', () => {
@@ -29,11 +31,20 @@ vi.mock('@mysten/dapp-kit-react', () => {
           return () => mocks.connections.delete(listener);
         },
       },
+      $currentNetwork: {
+        get: () => mocks.network,
+        subscribe: (listener: (value: string) => void) => {
+          mocks.networks.add(listener);
+          listener(mocks.network);
+          return () => mocks.networks.delete(listener);
+        },
+      },
     },
   };
   return {
     useCurrentAccount: () => mocks.current,
     useCurrentClient: () => mocks.client,
+    useCurrentNetwork: () => mocks.network,
     useDAppKit: () => kit,
   };
 });
@@ -48,6 +59,8 @@ beforeEach(() => {
   vi.clearAllMocks();
   localStorage.clear();
   mocks.current = mocks.account;
+  mocks.network = 'testnet';
+  mocks.client.network = 'testnet';
   mocks.market.mockResolvedValue({
     book: { bid_prices: [], bid_quantities: [], ask_prices: [1.5], ask_quantities: [1] },
     params: { lotSize: 0.1, minSize: 1 },
@@ -75,6 +88,13 @@ function switchAccount(account: typeof mocks.current) {
   act(() => {
     mocks.current = account;
     mocks.connections.forEach((listener) => listener({ account }));
+  });
+}
+function switchNetwork(network: string) {
+  act(() => {
+    mocks.network = network;
+    mocks.client.network = network;
+    mocks.networks.forEach((listener) => listener(network));
   });
 }
 it('reviews and signs once, then confirms only after the chain response', async () => {
@@ -137,6 +157,35 @@ it('discards an in-flight quote after leaving and returning to the same account'
   expect(mocks.sign).not.toHaveBeenCalled();
 });
 
+it('discards an in-flight quote when the network changes away and back', async () => {
+  let resolveQuote!: (value: unknown) => void;
+  const quote = await mocks.quote();
+  mocks.quote.mockReturnValueOnce(
+    new Promise((resolve) => {
+      resolveQuote = resolve;
+    }),
+  );
+  const view = render(<TradeDesk onConfirmed={vi.fn()} />);
+  fireEvent.change(screen.getByLabelText('Số lượng DBUSDC'), { target: { value: '2' } });
+  fireEvent.click(screen.getByText('Lấy quote & mô phỏng'));
+  switchNetwork('mainnet');
+  switchNetwork('testnet');
+  view.rerender(<TradeDesk onConfirmed={vi.fn()} />);
+  await act(async () => resolveQuote(quote));
+  expect(screen.queryByText('Xem lại trước khi ký')).not.toBeInTheDocument();
+  expect(mocks.sign).not.toHaveBeenCalled();
+});
+
+it('clears an existing review and blocks signing outside Testnet', async () => {
+  const view = render(<TradeDesk onConfirmed={vi.fn()} />);
+  await preview();
+  switchNetwork('mainnet');
+  view.rerender(<TradeDesk onConfirmed={vi.fn()} />);
+  expect(screen.queryByText('Xem lại trước khi ký')).not.toBeInTheDocument();
+  expect(screen.getByText('Lấy quote & mô phỏng')).toBeDisabled();
+  expect(mocks.sign).not.toHaveBeenCalled();
+});
+
 it.each([{}, { Transaction: { digest: 'B'.repeat(44) } }])(
   'keeps incomplete or mismatched transaction responses unknown',
   async (result) => {
@@ -170,6 +219,26 @@ it('keeps tracking a submitted transaction after the connected account changes',
   });
   expect(screen.getByText('Đã xác nhận on-chain')).toBeInTheDocument();
   expect(screen.getByText(`Ví: ${mocks.account.address}`)).toBeInTheDocument();
+  expect(onConfirmed).toHaveBeenCalledOnce();
+});
+it('keeps tracking a submitted transaction after the network changes', async () => {
+  let confirm!: (value: unknown) => void;
+  mocks.wait.mockReturnValue(
+    new Promise((resolve) => {
+      confirm = resolve;
+    }),
+  );
+  const onConfirmed = vi.fn();
+  const view = render(<TradeDesk onConfirmed={onConfirmed} />);
+  await preview();
+  fireEvent.click(screen.getByText('Xác nhận & ký trong ví'));
+  await screen.findByText('Đã gửi, đang chờ xác nhận');
+  switchNetwork('mainnet');
+  view.rerender(<TradeDesk onConfirmed={onConfirmed} />);
+  await act(async () => {
+    confirm({ Transaction: { digest } });
+  });
+  expect(screen.getByText('Đã xác nhận on-chain')).toBeInTheDocument();
   expect(onConfirmed).toHaveBeenCalledOnce();
 });
 it('blocks a stale quote at click time even before the countdown rerenders', async () => {

@@ -1,31 +1,120 @@
-import { act, render, screen } from '@testing-library/react';
-import { expect, it, vi } from 'vitest';
+import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { beforeEach, expect, it, vi } from 'vitest';
 import { WalletPanel } from './wallet-panel';
 
 const state = vi.hoisted(() => ({
   account: null as null | { address: string; chains: string[] },
+  network: 'testnet',
+  connection: { status: 'disconnected', isConnecting: false, isReconnecting: false } as {
+    status: string;
+    isConnecting: boolean;
+    isReconnecting: boolean;
+    wallet?: { name: string };
+  },
+  wallets: [] as { name: string }[],
+  connectWallet: vi.fn(),
+  disconnectWallet: vi.fn(),
   getBalance: vi.fn(),
 }));
 vi.mock('@mysten/dapp-kit-react', () => ({
   useCurrentAccount: () => state.account,
-  useCurrentNetwork: () => 'testnet',
+  useCurrentNetwork: () => state.network,
   useCurrentClient: () => ({ core: { getBalance: state.getBalance } }),
+  useWalletConnection: () => state.connection,
+  useWallets: () => state.wallets,
+  useDAppKit: () => ({
+    connectWallet: state.connectWallet,
+    disconnectWallet: state.disconnectWallet,
+  }),
 }));
-vi.mock('@mysten/dapp-kit-react/ui', () => ({ ConnectButton: () => <button>Kết nối ví</button> }));
+
+beforeEach(() => {
+  state.account = null;
+  state.network = 'testnet';
+  state.connection = { status: 'disconnected', isConnecting: false, isReconnecting: false };
+  state.wallets = [];
+  state.connectWallet.mockReset().mockResolvedValue({ accounts: [] });
+  state.disconnectWallet.mockReset().mockResolvedValue(undefined);
+  state.getBalance.mockReset().mockResolvedValue({ balance: { balance: '0' } });
+});
+
+it('shows missing-wallet onboarding and returns focus after closing the dialog', async () => {
+  render(<WalletPanel />);
+  const trigger = screen.getByRole('button', { name: 'Kết nối ví' });
+  trigger.focus();
+  fireEvent.click(trigger);
+
+  expect(screen.getByRole('dialog')).toBeInTheDocument();
+  expect(screen.getByText('Chưa tìm thấy ví')).toBeInTheDocument();
+  expect(screen.getByText(/Cài ví hỗ trợ Sui Wallet Standard/)).toBeInTheDocument();
+  fireEvent.keyDown(document, { key: 'Escape' });
+  await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
+  expect(document.activeElement).toBe(trigger);
+});
+
+it('reports rejected wallet connection and allows retry', async () => {
+  state.wallets = [{ name: 'Slush' }];
+  state.connectWallet
+    .mockRejectedValueOnce({ code: 4001000 })
+    .mockResolvedValueOnce({ accounts: [] });
+  render(<WalletPanel />);
+  fireEvent.click(screen.getByRole('button', { name: 'Kết nối ví' }));
+  fireEvent.click(screen.getByRole('button', { name: /Slush/ }));
+
+  expect(await screen.findByRole('alert')).toHaveTextContent(/Bạn đã từ chối yêu cầu kết nối/);
+  fireEvent.click(screen.getByRole('button', { name: /Slush/ }));
+  await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
+  expect(state.connectWallet).toHaveBeenCalledTimes(2);
+});
+
+it('announces that it is waiting for wallet approval', async () => {
+  state.wallets = [{ name: 'Slush' }];
+  let resolveConnection!: (value: { accounts: [] }) => void;
+  state.connectWallet.mockReturnValue(
+    new Promise((resolve) => {
+      resolveConnection = resolve;
+    }),
+  );
+  render(<WalletPanel />);
+  fireEvent.click(screen.getByRole('button', { name: 'Kết nối ví' }));
+  fireEvent.click(screen.getByRole('button', { name: /Slush/ }));
+  expect(await screen.findByText(/Đang chờ Slush xác nhận/)).toBeInTheDocument();
+
+  await act(async () => resolveConnection({ accounts: [] }));
+  await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
+});
+
+it('disconnects the active wallet', async () => {
+  state.account = { address: '0x1', chains: ['sui:testnet'] };
+  state.connection = {
+    status: 'connected',
+    isConnecting: false,
+    isReconnecting: false,
+    wallet: { name: 'Slush' },
+  };
+  render(<WalletPanel />);
+  fireEvent.click(screen.getByRole('button', { name: 'Ngắt kết nối' }));
+  await waitFor(() => expect(state.disconnectWallet).toHaveBeenCalledOnce());
+});
 
 it('does not read balances while disconnected or on an unsupported account', () => {
   state.account = null;
-  state.getBalance.mockClear();
   const view = render(<WalletPanel />);
-  expect(screen.getByText(/Kết nối ví Sui để xem/)).toBeInTheDocument();
+  expect(screen.getByText(/Kết nối ví hỗ trợ Sui Wallet Standard/)).toBeInTheDocument();
   state.account = { address: '0x1', chains: ['sui:mainnet'] };
   view.rerender(<WalletPanel />);
-  expect(screen.getByRole('alert')).toHaveTextContent('Chuyển ví sang Sui Testnet');
+  expect(screen.getByRole('alert')).toHaveTextContent('Chuyển tài khoản sang Testnet');
   expect(state.getBalance).not.toHaveBeenCalled();
 });
 
 it('discards an old account balance when the account changes', async () => {
   let resolveOld!: (value: { balance: { balance: string } }) => void;
+  state.connection = {
+    status: 'connected',
+    isConnecting: false,
+    isReconnecting: false,
+    wallet: { name: 'Slush' },
+  };
   state.account = { address: '0x1', chains: ['sui:testnet'] };
   state.getBalance
     .mockReturnValueOnce(

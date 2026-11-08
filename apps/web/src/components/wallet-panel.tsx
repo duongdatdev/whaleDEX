@@ -35,9 +35,7 @@ export function WalletPanel() {
   useEffect(() => {
     if (!connectOpen) return;
     const trigger = connectTrigger.current;
-    const frame = window.requestAnimationFrame(() => {
-      dialog.current?.querySelector<HTMLElement>('button:not([disabled])')?.focus();
-    });
+    dialog.current?.querySelector<HTMLElement>('button:not([disabled])')?.focus();
     function keepFocusInside(event: KeyboardEvent) {
       if (event.key === 'Escape') {
         event.preventDefault();
@@ -68,7 +66,6 @@ export function WalletPanel() {
     }
     document.addEventListener('keydown', keepFocusInside);
     return () => {
-      window.cancelAnimationFrame(frame);
       document.removeEventListener('keydown', keepFocusInside);
       trigger?.focus();
     };
@@ -148,7 +145,7 @@ export function WalletPanel() {
         {statusText}
       </p>
 
-      {connectionError && <p className="wallet-error" role="alert">{connectionError}</p>}
+      {connectionError && !connectOpen && <p className="wallet-error" role="alert">{connectionError}</p>}
       {account ? (
         <>
           <p className="mono address wallet-address" aria-label="Địa chỉ ví">
